@@ -5,7 +5,7 @@
 
 
 <p align="center">
-<small>Fork of: <a herf="https://github.com/gauravjot/social-network">Nexus: Social Network</a></small>
+Fork of <a herf="https://github.com/gauravjot/social-network">Nexus: Social Network</a>
 </p>
 
 
