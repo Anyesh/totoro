@@ -1,17 +1,15 @@
-import React from 'react'
-import { Helmet } from "react-helmet";
-import { useParams, Link } from 'react-router-dom';
-import Navbar from "../Navbar";
-import LeftSidebar from "../LeftSidebar";
 import axios from 'axios';
-import { BACKEND_SERVER_DOMAIN } from '../../../settings'
-import { useSelector } from 'react-redux';
-import Posts from "../post/Posts";
-import { timeSince } from "../../../utils/timesince";
-import InputField from '../../../utils/InputField'
-import { useDispatch } from "react-redux";
+import React from 'react';
+import { Helmet } from "react-helmet";
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { setUser } from "../../../redux/actions";
-import { useHistory } from "react-router-dom";
+import { BACKEND_SERVER_DOMAIN } from '../../../settings';
+import InputField from '../../../utils/InputField';
+import { timeSince } from "../../../utils/timesince";
+import LeftSidebar from "../LeftSidebar";
+import Navbar from "../Navbar";
+import Posts from "../post/Posts";
 
 export default function Profile() {
     const dispatch = useDispatch();
@@ -35,7 +33,7 @@ export default function Profile() {
             'Content-Type': 'application/json',
             Authorization: user.token,   
         }};
-        axios.get(BACKEND_SERVER_DOMAIN + '/api/person/u/' + slug +"/", config)
+        axios.get(BACKEND_SERVER_DOMAIN + '/api/user/u/' + slug +"/", config)
             .then(function (response) {
                 setProfileData(response.data);
                 setAvatar(response.data.user.avatar)
@@ -126,7 +124,7 @@ export default function Profile() {
         };
         axios
             .put(
-                BACKEND_SERVER_DOMAIN + "/api/person/edit/",
+                BACKEND_SERVER_DOMAIN + "/api/user/edit/",
                 formData,
                 config
             )

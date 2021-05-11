@@ -1,5 +1,5 @@
-import React, {useState, useRef} from 'react';
 import axios from 'axios';
+import React, { useRef, useState } from 'react';
 import { BACKEND_SERVER_DOMAIN } from "../../../settings";
 
 function CreatePost({user, newPost}) {
@@ -53,7 +53,7 @@ function CreatePost({user, newPost}) {
                     setPostText("");
                     textAreaRef.current.style.height = 'auto'
                     setPostImage(null);
-                    newPost({...response.data,"person":user});
+                    newPost({...response.data,"user":user});
                     setAPIResponse("");
                     showBtn.current.classList.remove("show-btn");
                     })

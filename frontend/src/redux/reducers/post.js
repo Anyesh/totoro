@@ -1,7 +1,7 @@
 import * as actions from '../actions/actionTypes';
 
 // id: payload.id,
-// person_id: payload.person_id,
+// user_id: payload.user_id,
 // post_text: payload.post_text,
 // post_image: payload.post_image,
 // likes: payload.likes,

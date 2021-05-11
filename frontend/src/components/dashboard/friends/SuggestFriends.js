@@ -1,9 +1,9 @@
 /* eslint-disable jsx-a11y/alt-text */
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { BACKEND_SERVER_DOMAIN } from "../../../settings";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link } from 'react-router-dom';
+import { BACKEND_SERVER_DOMAIN } from "../../../settings";
 
 export default function SuggestFriends() {
     const user = useSelector((state) => state.user);
@@ -38,8 +38,8 @@ export default function SuggestFriends() {
         <div>
             <h6 className="mt-3">Friend Suggestions</h6>
             <div className="card friend-suggestions">
-                {suggestions.map((person, index) => (
-                    <SuggestedFriendItem key={index} token={token} person={person}/>
+                {suggestions.map((user, index) => (
+                    <SuggestedFriendItem key={index} token={token} user={user}/>
                 ))}
                 <Link to={"/findfriends"} className="card-btn">Find more Friends</Link>
             </div>
@@ -49,7 +49,7 @@ export default function SuggestFriends() {
     );
 }
 
-export function SuggestedFriendItem({token, person}) {
+export function SuggestedFriendItem({token, user}) {
     const [isReqSent, setIsReqSent] = React.useState(false)
     let btnRef = React.useRef()
 
@@ -80,18 +80,18 @@ export function SuggestedFriendItem({token, person}) {
         <div className="d-flex user">
             <img
                 className="rounded-circle"
-                src={BACKEND_SERVER_DOMAIN + person.avatar}
-                alt={person.first_name +"'s avatar"}
+                src={BACKEND_SERVER_DOMAIN + user.avatar}
+                alt={user.first_name +"'s avatar"}
             />
             <div>
                 <h6>
-                    <Link to={"/u/"+person.slug}>
-                        {person.first_name} {person.last_name}
+                    <Link to={"/u/"+user.slug}>
+                        {user.first_name} {user.last_name}
                     </Link>
                 </h6>
-                <span>{person.tagline}</span>
+                <span>{user.tagline}</span>
                 <button
-                    onClick={() => sendFriendRequest(person.id)}
+                    onClick={() => sendFriendRequest(user.id)}
                     className="btn btn-sm btn-outline-primary"
                     ref={btnRef}
                 >

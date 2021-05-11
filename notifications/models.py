@@ -9,8 +9,8 @@ class Notification(models.Model):
     # 5: comment reply
     noti = models.IntegerField()
 
-    person_for = models.IntegerField()
-    person_from = models.IntegerField()
+    user_for = models.IntegerField()
+    user_from = models.IntegerField()
 
     # about: _> friend or post
     about = models.IntegerField()
@@ -18,4 +18,11 @@ class Notification(models.Model):
     created = models.FloatField()
 
     def __str__(self):
-        return "Notification #"+str(self.pk)+" __for "+str(self.person_for)+" __from "+str(self.person_from)
+        return (
+            "Notification #"
+            + str(self.pk)
+            + " __for "
+            + str(self.user_for)
+            + " __from "
+            + str(self.user_from)
+        )

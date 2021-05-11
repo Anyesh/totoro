@@ -1,15 +1,14 @@
-import React, { useState, useRef } from "react";
-import logo from "../../assets/images/logo.png";
-import InputField from "../../utils/InputField";
-import { Helmet } from "react-helmet";
 import axios from "axios";
+import React, { useRef, useState } from "react";
+import { Helmet } from "react-helmet";
 import { useDispatch } from "react-redux";
+import { Link, useHistory } from "react-router-dom";
+import logo from "../../assets/images/logo.png";
 import { setUser } from "../../redux/actions";
-import { useHistory } from "react-router-dom";
 import { BACKEND_SERVER_DOMAIN } from "../../settings";
-import { Link } from "react-router-dom";
-import FinishSignUp from './FinishSignUp'
-import {themeApply} from '../global/ThemeApply'
+import InputField from "../../utils/InputField";
+import { themeApply } from '../global/ThemeApply';
+import FinishSignUp from './FinishSignUp';
 
 function LogIn() {
     const dispatch = useDispatch();
@@ -50,7 +49,7 @@ function LogIn() {
         };
         axios
             .post(
-                BACKEND_SERVER_DOMAIN + "/api/person/login/",
+                BACKEND_SERVER_DOMAIN + "/api/user/login/",
                 JSON.stringify({ email: email, password: password }),
                 config
             )

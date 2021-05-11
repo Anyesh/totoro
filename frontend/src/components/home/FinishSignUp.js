@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react'
 import axios from "axios";
+import React, { useRef, useState } from 'react';
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router-dom";
+import { logoutUser, setUser } from "../../redux/actions";
 import { BACKEND_SERVER_DOMAIN } from "../../settings";
 import InputField from "../../utils/InputField";
-import { useHistory } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setUser, logoutUser } from "../../redux/actions";
-import { useSelector } from "react-redux";
 
 export default function FinishSignUp() {
     const user = useSelector((state) => state.user);
@@ -74,7 +73,7 @@ export default function FinishSignUp() {
         };
         axios
             .put(
-                BACKEND_SERVER_DOMAIN + "/api/person/signup/",
+                BACKEND_SERVER_DOMAIN + "/api/user/signup/",
                 formData,
                 config
             )

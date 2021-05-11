@@ -1,12 +1,12 @@
-import React, { useState, useRef } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import React, { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { setUser } from "../../redux/actions";
-
-import InputField from "../../utils/InputField";
-import { isValidDate } from "../../utils/CheckValidDate";
 import { BACKEND_SERVER_DOMAIN } from "../../settings";
+import { isValidDate } from "../../utils/CheckValidDate";
+import InputField from "../../utils/InputField";
+
 
 function SignUp({secondStep}) {
     const dispatch = useDispatch();
@@ -89,7 +89,7 @@ function SignUp({secondStep}) {
         if (isValidDate(birthday)) {
             axios
                 .post(
-                    BACKEND_SERVER_DOMAIN + "/api/person/signup/",
+                    BACKEND_SERVER_DOMAIN + "/api/user/signup/",
                     formData,
                     config
                 )

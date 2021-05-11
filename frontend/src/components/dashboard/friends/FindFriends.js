@@ -1,13 +1,13 @@
-import React from 'react'
 import axios from "axios";
-import { BACKEND_SERVER_DOMAIN } from "../../../settings";
+import React from 'react';
 import { Helmet } from "react-helmet";
 import { useSelector } from "react-redux";
-
+import { BACKEND_SERVER_DOMAIN } from "../../../settings";
 import LeftSidebar from "../LeftSidebar";
 import Navbar from "../Navbar";
+import { SuggestedFriendItem } from './SuggestFriends';
 
-import {SuggestedFriendItem} from './SuggestFriends'
+
 
 export default function FindFriends() {
     const [suggestions, setSuggestions] = React.useState();
@@ -52,8 +52,8 @@ export default function FindFriends() {
                             {
                                 (isLoading) ?
                                     <div className="slim-loading-bar"></div>
-                                : (suggestions) ?suggestions.map((person, index) => (
-                                        <SuggestedFriendItem key={index} token={user.token} person={person}/>
+                                : (suggestions) ?suggestions.map((user, index) => (
+                                        <SuggestedFriendItem key={index} token={user.token} user={user}/>
                                     ))
                                 : <div className="sorry">Unable to find people</div>
                             }

@@ -1,13 +1,13 @@
-import React from "react";
-import { logoutUser, removeAllPosts } from "../../redux/actions";
-import logo from "../../assets/images/logo.png";
-import { useSelector, useDispatch } from "react-redux";
-import { Link, useHistory } from "react-router-dom";
 import axios from "axios";
+import _ from 'lodash';
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useHistory } from "react-router-dom";
+import logo from "../../assets/images/logo.png";
+import { logoutUser, removeAllPosts } from "../../redux/actions";
 import { BACKEND_SERVER_DOMAIN } from "../../settings";
 import { timeSince } from "../../utils/timesince";
 import ThemeToggle from "../global/ThemeToggle";
-import _ from 'lodash'
 
 export default function Navbar() {
     const user = useSelector((state) => state.user);
@@ -71,7 +71,7 @@ export default function Navbar() {
                 },
             };
             axios
-                .get(BACKEND_SERVER_DOMAIN + "/api/person/search/"+target.value.replace(" ","+")+"/", config)
+                .get(BACKEND_SERVER_DOMAIN + "/api/user/search/"+target.value.replace(" ","+")+"/", config)
                 .then(function (response) {
                     setSearchResults(response.data)
                 })
@@ -178,7 +178,7 @@ export default function Navbar() {
                                         { (searchResults && searchResults.length >0) ?
                                             <div className="searchResults">
                                                 {searchResults.slice(0,5).map((result, index)=>(
-                                                    <SearchPerson person={result} />
+                                                    <SearchUser user={result} />
                                                 ))}
                                             </div>
                                             : (searchResults && searchResults.length == 0) 
@@ -251,21 +251,21 @@ export default function Navbar() {
     );
 }
 
-export function SearchPerson({ person }) {
+export function SearchUser({ user }) {
     return (
-        <Link to={"/u/" + person.slug}>
+        <Link to={"/u/" + user.slug}>
             <div className="d-flex user">
                 <img
                     className="rounded-circle"
-                    src={BACKEND_SERVER_DOMAIN + person.avatar}
+                    src={BACKEND_SERVER_DOMAIN + user.avatar}
                     alt="profile picture"
                 />
                 <div>
                     <h6>
                         
-                            {person.first_name} {person.last_name}
+                            {user.first_name} {user.last_name}
                     </h6>
-                    <span>{person.tagline}</span>
+                    <span>{user.tagline}</span>
                 </div>
             </div>
         </Link>
@@ -291,9 +291,9 @@ export function Notifications({ showNotifications, notifications }) {
                                     : notif.noti == 2
                                     ? "/post/" + notif.about
                                     : notif.noti == 3
-                                    ? "/u/" + notif.person.slug
+                                    ? "/u/" + notif.user.slug
                                     : notif.noti == 4
-                                    ? "/u/" + notif.person.slug
+                                    ? "/u/" + notif.user.slug
                                     : notif.noti == 5
                                     ? "/post/" + notif.about
                                     : ""
@@ -316,8 +316,8 @@ export function Notifications({ showNotifications, notifications }) {
                                     ""
                                 )}
                                 <span className="uname">
-                                    {notif.person.first_name}{" "}
-                                    {notif.person.last_name}
+                                    {notif.user.first_name}{" "}
+                                    {notif.user.last_name}
                                 </span>
                                 {notif.noti == 1
                                     ? " commented on your post."

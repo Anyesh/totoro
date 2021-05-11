@@ -1,9 +1,10 @@
+from account.models import Token, User
 from rest_framework import serializers
-from account.models import Person, Token
 
-class PersonSerializer(serializers.ModelSerializer):
+
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Person
+        model = User
         fields = ['id', 'first_name','last_name','password','email','avatar','birthday'
                  ,'tagline', 'created', 'updated','slug', 'hometown','work','cover_image']
         extra_kwargs = {

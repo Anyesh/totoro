@@ -1,11 +1,12 @@
 from django.urls import path
-from .views import personInfo, signup, login, logout, editProfile, searchPersons
+
+from .views import editProfile, login, logout, searchUsers, signup, userInfo
 
 urlpatterns = [
-    path('api/person/signup/', signup),
-    path('api/person/login/', login),
-    path('api/person/logout/', logout),
-    path('api/person/edit/', editProfile),
-    path('api/person/search/<query>/', searchPersons),
-    path('api/person/u/<slug>/', personInfo),
+    path("api/user/signup/", signup),
+    path("api/user/login/", login),
+    path("api/user/logout/", logout),
+    path("api/user/edit/", editProfile),
+    path("api/user/search/<query>/", searchUsers),
+    path("api/user/u/<slug>/", userInfo),
 ]

@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
-import { timeSince } from "../../../utils/timesince";
-import { BACKEND_SERVER_DOMAIN } from "../../../settings";
-import CommentComponent from "./Comment";
 import axios from "axios";
-import { Link } from 'react-router-dom';
-import {getMetadata} from 'page-metadata-parser';
+import { getMetadata } from 'page-metadata-parser';
+import React, { useEffect, useRef, useState } from "react";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
+import { Link } from 'react-router-dom';
+import { BACKEND_SERVER_DOMAIN } from "../../../settings";
+import { timeSince } from "../../../utils/timesince";
+import CommentComponent from "./Comment";
 
 const TimelinePost = ({ user, post, expanded}) => {
     const [isLiked, setIsLiked] = useState(false);
@@ -20,8 +20,8 @@ const TimelinePost = ({ user, post, expanded}) => {
     useEffect(() => {
         if(!isDeleted) {
             if(post.likes) {
-                setIsLiked(post.likes.person_ids && post.likes.person_ids.includes(user.id));
-                setLikesCount((post.likes.person_ids && post.likes.person_ids != null) ? post.likes.person_ids.length : 0);
+                setIsLiked(post.likes.user_ids && post.likes.user_ids.includes(user.id));
+                setLikesCount((post.likes.user_ids && post.likes.user_ids != null) ? post.likes.user_ids.length : 0);
             }
             let urlRegEx = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
             const urls = [...post.post_text.matchAll(urlRegEx)]
@@ -170,12 +170,12 @@ const TimelinePost = ({ user, post, expanded}) => {
                 <LazyLoadImage
                     loading="lazy"
                     className="rounded-circle"
-                    src={BACKEND_SERVER_DOMAIN + post.person.avatar}
-                    alt={post.person.first_name + "'s avatar"}
+                    src={BACKEND_SERVER_DOMAIN + post.user.avatar}
+                    alt={post.user.first_name + "'s avatar"}
                 />
                 <div>
                     <h6>
-                        <Link to={"/u/"+post.person.slug}>{post.person.first_name} {post.person.last_name}</Link>
+                        <Link to={"/u/"+post.user.slug}>{post.user.first_name} {post.user.last_name}</Link>
                     </h6>
                     <span>{timeSince(post.created)}</span>
                 </div>
@@ -198,7 +198,7 @@ const TimelinePost = ({ user, post, expanded}) => {
                             <Link className="dropdown-item" to={"/post/"+post.id}>
                                 View Post
                             </Link>
-                            {(user.id == post.person_id) ? <button className="dropdown-item"
+                            {(user.id == post.user_id) ? <button className="dropdown-item"
                             onClick={deletePost}>
                                 Delete
                             </button> : ""}
@@ -219,7 +219,7 @@ const TimelinePost = ({ user, post, expanded}) => {
                 ))) : ""}
             </div>
             {post.post_image ? (
-                <LazyLoadImage src={BACKEND_SERVER_DOMAIN +post.post_image} className="rounded post-picture" alt={post.person.first_name + "'s post picture"} />
+                <LazyLoadImage src={BACKEND_SERVER_DOMAIN +post.post_image} className="rounded post-picture" alt={post.user.first_name + "'s post picture"} />
             ) : (
                 ""
             )}
@@ -247,14 +247,14 @@ const TimelinePost = ({ user, post, expanded}) => {
             </div>
             { (post.likes) ? 
                 <div className="likedBy">Liked by&nbsp;
-                        {post.likes.persons.slice(0,2).map((person, index)=> (
-                            <span key={person.id}>
-                                <Link to={"/u/"+person.slug} key={person.id}>
-                                    {person.first_name} {person.last_name}
+                        {post.likes.users.slice(0,2).map((user, index)=> (
+                            <span key={user.id}>
+                                <Link to={"/u/"+user.slug} key={user.id}>
+                                    {user.first_name} {user.last_name}
                                 </Link>
-                                {(post.likes.persons.length > 1 && index==0) ?", ":""}
+                                {(post.likes.users.length > 1 && index==0) ?", ":""}
                             </span>
-                        ))} {(post.likes.persons.length > 2) ? " and "+(likesCount-2)+" others": ""}
+                        ))} {(post.likes.users.length > 2) ? " and "+(likesCount-2)+" others": ""}
                 </div> : ""
             }
             <div className={(isLoadingComments) ? "slim-loading-bar":""}></div>

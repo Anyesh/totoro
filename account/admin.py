@@ -1,6 +1,7 @@
 from django.contrib import admin
-from account.models import Person, Token
+
+from account.models import Token, User
 
 # Register your models here.
-admin.site.register(Person)
+admin.site.register(User)
 admin.site.register(Token)

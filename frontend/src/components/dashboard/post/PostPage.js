@@ -1,12 +1,12 @@
-import React from 'react'
-import { Helmet } from "react-helmet";
-import TimelinePost from './TimelinePost'
-import { useParams, Link } from 'react-router-dom';
-import Navbar from "../Navbar";
-import LeftSidebar from "../LeftSidebar";
 import axios from 'axios';
-import { BACKEND_SERVER_DOMAIN } from '../../../settings'
+import React from 'react';
+import { Helmet } from "react-helmet";
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { BACKEND_SERVER_DOMAIN } from '../../../settings';
+import LeftSidebar from "../LeftSidebar";
+import Navbar from "../Navbar";
+import TimelinePost from './TimelinePost';
 
 export default function PostPage() {
     const {post_id} = useParams();
@@ -31,7 +31,7 @@ export default function PostPage() {
     return (
         <section className="profile-page">
             <Helmet>
-                <title>{(post) ? post.person.first_name + " " +post.person.last_name : "User"}'s Post</title>
+                <title>{(post) ? post.user.first_name + " " +post.user.last_name : "User"}'s Post</title>
             </Helmet>
             <Navbar />
             <div className="navbar-spacer"></div>

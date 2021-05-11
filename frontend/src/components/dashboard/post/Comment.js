@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { BACKEND_SERVER_DOMAIN } from "../../../settings";
 import { timeSince } from "../../../utils/timesince";
-import axios from "axios";
-import { Link } from "react-router-dom";
 
 export default function CommentComponent({
     user,
@@ -19,10 +19,10 @@ export default function CommentComponent({
     const commentBoxDiv = useRef();
 
     useEffect(() => {
-        setIsLiked(comment.comment_likes.persons && comment.comment_likes.persons.includes(user.id))
+        setIsLiked(comment.comment_likes.users && comment.comment_likes.users.includes(user.id))
         setLikesCount(
-            comment.comment_likes.persons != null
-                ? comment.comment_likes.persons.length
+            comment.comment_likes.users != null
+                ? comment.comment_likes.users.length
                 : 0
         );
         let subCmts = new Array();
@@ -165,12 +165,12 @@ export default function CommentComponent({
         <div className="d-flex comment">
             <img
                 className="avatar rounded-circle"
-                src={(!isDeleted) ? (BACKEND_SERVER_DOMAIN + comment.person.avatar) : ""}
+                src={(!isDeleted) ? (BACKEND_SERVER_DOMAIN + comment.user.avatar) : ""}
             />
             <div>
                 <div className="content">
-                    <Link to={"/u/"+comment.person.slug}><h6> 
-                        {(!isDeleted) ? (comment.person.first_name + " " +comment.person.last_name) : "deleted"}
+                    <Link to={"/u/"+comment.user.slug}><h6> 
+                        {(!isDeleted) ? (comment.user.first_name + " " +comment.user.last_name) : "deleted"}
                     </h6></Link>
                     <p>{(!isDeleted) ? comment.comment_text : "deleted"}</p>
                 </div>
@@ -194,7 +194,7 @@ export default function CommentComponent({
                     <span className="timesince">
                         {timeSince(comment.created)}
                     </span>
-                    {Number(user.id) === Number(comment.person_id) ? (
+                    {Number(user.id) === Number(comment.user_id) ? (
                         <div className="dropright">
                             <button
                                 className="comment-actions"
