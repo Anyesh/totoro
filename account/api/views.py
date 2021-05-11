@@ -119,7 +119,7 @@ def signup(request):
         req_dict["updated"] = datetime.now().timestamp()
         userSerializer = UserSerializer(data=req_dict)
         # -- check if data is without bad actors
-        if UserSerializer.is_valid():
+        if userSerializer.is_valid():
             userSerializer.save()
             # -- assign an auth token
             token = genToken()
