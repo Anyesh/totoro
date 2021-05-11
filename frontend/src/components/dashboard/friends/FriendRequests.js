@@ -39,8 +39,8 @@ export default function FriendRequests() {
         <div>
             <h6 className="mt-3">Friend Requests</h6>
             <div className="friend-req card">
-                {friendRequests.map((user) => (
-                    <FriendReq user={user} user={user} index ={user.id}/>
+                {friendRequests.map((person) => (
+                    <FriendReq person={person} user={user} index ={person.id}/>
                 ))}
             </div>
         </div>
@@ -49,7 +49,7 @@ export default function FriendRequests() {
     );
 }
 
-export function FriendReq({user, user}) {
+export function FriendReq({person, user}) {
     const [isDeleted,setIsDeleted] = useState(false);
     const [isAccepted,setIsAccepted] = useState(false);
 
@@ -67,7 +67,7 @@ export function FriendReq({user, user}) {
         axios
             .put(
                 BACKEND_SERVER_DOMAIN+"/api/friends/request/accept/",
-                JSON.stringify({ id: user.request_id }),
+                JSON.stringify({ id: person.request_id }),
                 config
             )
             .then(function (response) {
@@ -89,7 +89,7 @@ export function FriendReq({user, user}) {
         };
         axios
             .delete(
-                BACKEND_SERVER_DOMAIN+"/api/friends/request/delete/"+user.request_id,
+                BACKEND_SERVER_DOMAIN+"/api/friends/request/delete/"+person.request_id,
                 config,
                 {}
             )
@@ -106,16 +106,16 @@ export function FriendReq({user, user}) {
         <div className="d-flex user">
             <img
                 className="rounded-circle"
-                src={BACKEND_SERVER_DOMAIN + user.avatar}
+                src={BACKEND_SERVER_DOMAIN + person.avatar}
                 alt="profile picture"
             />
             <div>
                 <h6>
-                    <Link to={"/u/"+user.slug}>
-                        {user.first_name} {user.last_name}
+                    <Link to={"/u/"+person.slug}>
+                        {person.first_name} {person.last_name}
                     </Link>
                 </h6>
-                <span>{user.tagline}</span>
+                <span>{person.tagline}</span>
                 <div className="d-flex">
                     {!isDeleted ? 
                         <button
