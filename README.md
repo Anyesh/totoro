@@ -1,7 +1,11 @@
-<h1>Socl <code>AI</code></h1> 
+<h1 align="center">Socl <code>AI</code></h1> 
 
 
----
-<center>
+
+
+
+<p align="center">
 <small>Fork of: <a herf="https://github.com/gauravjot/social-network">Nexus: Social Network</a></small>
-</center>
+</p>
+
+
