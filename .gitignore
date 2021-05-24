@@ -30,3 +30,5 @@ yarn-error.log*
 *.lock
 
 *.sqlite3
+.vscode
+.vscode/**
