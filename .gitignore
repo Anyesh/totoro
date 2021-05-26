@@ -1,5 +1,6 @@
 .env
 .venv
+.venv/**
 __pycache__/
 .env/
 migrations/
@@ -32,3 +33,5 @@ yarn-error.log*
 *.sqlite3
 .vscode
 .vscode/**
+*.log
+*.env
