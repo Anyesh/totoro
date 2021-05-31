@@ -40,13 +40,23 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "account",
+    "django.contrib.sites",
+    # Internal
+    "accounts",
     "posts",
     "friends",
     "notifications",
+    # External
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
-    # "rest_framework_simplejwt.token_blacklist",
+    # Auth
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
 ]
 
 MIDDLEWARE = [
@@ -65,6 +75,13 @@ if not DEBUG:
     MIDDLEWARE += [
         "totoro.middleware.exceptions.ExceptionMiddleware",
     ]
+
+
+AUTH_USER_MODEL = "accounts.User"
+
+# REST_AUTH_SERIALIZERS = {
+#     'USER_DETAILS_SERIALIZER': 'totoro.serializers.CustomUserModelSerializer'
+# }
 
 ROOT_URLCONF = "totoro.urls"
 
@@ -179,29 +196,55 @@ STATICFILES_DIRS = [
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
-# REST_FRAMEWORK = {
-#     "DEFAULT_PERMISSION_CLASSES": [
-#         # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-#         "rest_framework.permissions.IsAuthenticated",
-#     ],
-#     "DEFAULT_AUTHENTICATION_CLASSES": [
-#         # "rest_framework.authentication.SessionAuthentication",
-#         # "rest_framework_simplejwt.authentication.JWTAuthentication",
-#     ],
-#     "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
-# }
+
+CALLBACK_URL = "http://localhost:3000"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.utils.JWTCookieAuthentication",),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.UserRateThrottle",
+        # 'rest_framework.throttling.AnonRateThrottle',
+    ),
+    "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
+    "DEFAULT_THROTTLE_RATES": {
+        "loginAttempts": "6/hr",
+        "user": "1000/min",
+    },
+}
+
 
 # JWT Settings
-# SIMPLE_JWT = {
-#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
-#     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
-# }
-# JWT_COOKIE_NAME = "totoro_token"
-# JWT_COOKIE_SECURE = True
-# JWT_COOKIE_SAMESITE = "Lax"
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "USER_ID_FIELD": "user_id",  # for the totoro user model
+    "USER_ID_CLAIM": "user_id",
+    "SIGNING_KEY": SECRET_KEY,
+}
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    }
+}
 
-# CSRF_COOKIE_SAMESITE = "Lax"
-# SESSION_COOKIE_SAMESITE = "Lax"
-# CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY = True
+# we are turning off email verification for now
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+
+SITE_ID = 1  # https://dj-rest-auth.readthedocs.io/en/latest/installation.html#registration-optional
+REST_USE_JWT = True  # use JSON Web Tokens
+JWT_AUTH_COOKIE = "totoro-access-token"
+JWT_AUTH_REFRESH_COOKIE = "totoro-refresh-token"
+JWT_AUTH_SAMESITE = "Lax"
