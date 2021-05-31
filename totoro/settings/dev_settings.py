@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     "notifications",
     "rest_framework",
     "corsheaders",
+    # "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
+if not DEBUG:
+    MIDDLEWARE += [
+        "totoro.middleware.exceptions.ExceptionMiddleware",
+    ]
 
 ROOT_URLCONF = "totoro.urls"
 
@@ -107,6 +115,8 @@ CSRF_TRUSTED_ORIGINS = [
     "locahost:8000",
     "locahost:3000",
 ]
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -168,3 +178,30 @@ STATICFILES_DIRS = [
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_PERMISSION_CLASSES": [
+#         # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+#         "rest_framework.permissions.IsAuthenticated",
+#     ],
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         # "rest_framework.authentication.SessionAuthentication",
+#         # "rest_framework_simplejwt.authentication.JWTAuthentication",
+#     ],
+#     "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
+# }
+
+# JWT Settings
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+# }
+# JWT_COOKIE_NAME = "totoro_token"
+# JWT_COOKIE_SECURE = True
+# JWT_COOKIE_SAMESITE = "Lax"
+
+
+# CSRF_COOKIE_SAMESITE = "Lax"
+# SESSION_COOKIE_SAMESITE = "Lax"
+# CSRF_COOKIE_HTTPONLY = True
+# SESSION_COOKIE_HTTPONLY = True
