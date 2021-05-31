@@ -1,0 +1,90 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-added-large-files
+        name: Check for added large files
+        description: Prevent giant files from being committed
+        entry: check-added-large-files
+
+      - id: check-ast
+        name: Check python ast
+        description: Simply check whether the files parse as valid python.
+        entry: check-ast
+        types: [python]
+
+      - id: check-case-conflict
+        name: Check for case conflicts
+        description: Check for files that would conflict in case-insensitive filesystems
+        entry: check-case-conflict
+
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        description: Check for files that contain merge conflict strings.
+        entry: check-merge-conflict
+        types: [text]
+
+      - id: debug-statements
+        name: Debug Statements (Python)
+        description: Check for debugger imports and py37+ `breakpoint()` calls in python source.
+        entry: debug-statement-hook
+        types: [python]
+
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        description: Ensures that a file is either empty, or ends with one newline.
+        entry: end-of-file-fixer
+        types: [text]
+        stages: [commit, push, manual]
+
+      - id: mixed-line-ending
+        name: Mixed line ending
+        description: Replaces or checks mixed line ending
+        entry: mixed-line-ending
+        types: [text]
+
+      # - id: no-commit-to-branch
+      #   name: "Don't commit to branch"
+      #   entry: no-commit-to-branch
+      #   pass_filenames: false
+      #   always_run: true
+
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: This hook trims trailing whitespace.
+        entry: trailing-whitespace-fixer
+        types: [text]
+        stages: [commit, push, manual]
+
+  - repo: https://github.com/psf/black
+    rev: 21.5b1
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.8.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+      - id: autoflake
+        args:
+          [
+            "--in-place",
+            "--remove-all-unused-imports",
+            "--remove-unused-variable",
+          ]
+
+  # - repo: https://gitlab.com/pycqa/flake8
+  #   rev: 3.9.2
+  #   hooks:
+  #     - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.812
+    hooks:
+      - id: mypy
+        exclude: docs
