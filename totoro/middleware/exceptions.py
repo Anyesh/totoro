@@ -1,18 +1,11 @@
 from django.http import JsonResponse
 from rest_framework.views import exception_handler
 
-
-def get_response(message="", result={}, status=False, status_code=200):
-    return {
-        "message": message,
-        "result": result,
-        "status": status,
-        "status_code": status_code,
-    }
+from totoro.utils import get_response
 
 
 def get_error_message(error_dict):
-    field = next(iter(error_dict))
+    next(iter(error_dict))
     response = error_dict[next(iter(error_dict))]
     if isinstance(response, dict):
         response = get_error_message(response)
