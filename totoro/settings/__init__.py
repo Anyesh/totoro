@@ -1,4 +1,4 @@
 try:
-    from .dev_settings import *
+    from .dev_settings import *  # noqa
 except Exception:
-    from .prod_settings import *
+    from .prod_settings import *  # noqa
