@@ -6,22 +6,32 @@ from secrets import token_hex
 import bcrypt
 import pytz
 from account.models import Token, User
+
+# from django.conf import settings
+from django.contrib.auth import authenticate, login
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 from friends.models import Friend, FriendRequest
 from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
 from posts.api.serializers import CommentSerializer, PostsSerializer
 from posts.models import Comment, Posts
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .serializers import UserSerializer
 
+# from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+# from rest_framework_simplejwt.settings import api_settings as jwt_settings
+# from rest_framework_simplejwt.tokens import RefreshToken as RefreshTokenModel
+# from rest_framework_simplejwt.views import TokenViewBase
 
-# Get profile info
-# -----------------------------------------------
+
 @api_view(["GET"])
 def userInfo(request, slug):
     requesting_user = getUserID(request)
@@ -103,8 +113,6 @@ def userInfo(request, slug):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-# Sign Up function
-# -----------------------------------------------
 @api_view(["POST", "PUT"])
 @csrf_exempt
 def signup(request):
@@ -161,10 +169,61 @@ def signup(request):
             )
 
 
-# Log In function, requires email and password
-# -----------------------------------------------
+# class TokenViewBaseWithCookie(TokenViewBase):
+#     def post(self, request, *args, **kwargs):
+
+#         serializer = self.get_serializer(data=request.data)
+
+#         try:
+#             serializer.is_valid(raise_exception=True)
+#         except TokenError as e:
+#             raise InvalidToken(e.args[0])
+
+#         resp = Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+#         # TODO: this should probably be pulled from the token exp
+#         expiration = datetime.utcnow() + jwt_settings.REFRESH_TOKEN_LIFETIME
+
+#         resp.set_cookie(
+#             settings.JWT_COOKIE_NAME,
+#             serializer.validated_data["refresh"],
+#             expires=expiration,
+#             secure=settings.JWT_COOKIE_SECURE,
+#             httponly=True,
+#             samesite=settings.JWT_COOKIE_SAMESITE,
+#         )
+
+#         return resp
+
+
+# class Login(TokenViewBaseWithCookie):
+#     serializer_class = TokenObtainPairSerializer
+
+
+# @require_POST
+# def LoginView(request):
+#     data = json.loads(request.body)
+#     username = data.get("username")
+#     password = data.get("password")
+
+#     if username is None or password is None:
+#         return JsonResponse({"info": "Username and Password is needed"})
+
+#     user = authenticate(username=username, password=password)
+
+#     if user is None:
+#         return JsonResponse({"info": "User does not exist"}, status=400)
+
+#     login(request, user)
+#     return JsonResponse({"info": "User logged in successfully"})
+
+
+# class RefreshToken(TokenViewBaseWithCookie):
+#     serializer_class = TokenRefreshSerializer
+
+
 @api_view(["POST"])
-def login(request):
+def LoginView(request):
     email = request.data["email"]
     password = request.data["password"]
     # -- Check if credentials are correct
@@ -199,8 +258,6 @@ def login(request):
     )
 
 
-# Log Out function, requires token
-# -----------------------------------------------
 @api_view(["DELETE"])
 def logout(request):
     token = request.headers["Authorization"].split()[-1]
@@ -208,8 +265,16 @@ def logout(request):
     return Response(data=json.loads('{"action": "success"}'), status=status.HTTP_200_OK)
 
 
-# Edit profile, requires token
-# -----------------------------------------------
+# class Logout(APIView):
+#     def post(self, *args, **kwargs):
+#         resp = Response({})
+#         token = self.request.COOKIES.get(settings.JWT_COOKIE_NAME)
+#         refresh = RefreshTokenModel(token)
+#         refresh.blacklist()
+#         resp.delete_cookie(settings.JWT_COOKIE_NAME)
+#         return resp
+
+
 @api_view(["PUT"])
 def editProfile(request):
     user = getUserID(request)
@@ -238,8 +303,6 @@ def editProfile(request):
         )
 
 
-# Search people, requires token
-# -----------------------------------------------
 @api_view(["GET"])
 def searchUsers(request, query):
     # this is keep it only accessible to logged in users
@@ -264,8 +327,6 @@ def searchUsers(request, query):
         )
 
 
-# Helper Functions
-# -----------------------------------------------
 def getUserID(request):
     try:
         token = request.headers["Authorization"].split()[-1]
@@ -315,3 +376,16 @@ def remove_prefix(text, prefix):
         if text.startswith(prefix):
             return text[len(prefix) :]
     return text
+
+
+# def get_csrf(request):
+#     response = JsonResponse({"Info": "Success - Set CSRF cookie"})
+#     response["X-CSRFToken"] = get_token(request)
+#     return response
+
+
+# class Ping(APIView):
+#     def get(self, request):
+#         return JsonResponse(
+#             {"details": f"logged in as {request.user.username}", "status_code": 200}
+#         )
