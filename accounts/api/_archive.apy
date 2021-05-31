@@ -1,0 +1,205 @@
+# from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+# from rest_framework_simplejwt.settings import api_settings as jwt_settings
+# from rest_framework_simplejwt.tokens import RefreshToken as RefreshTokenModel
+# from rest_framework_simplejwt.views import TokenViewBase
+
+# class TokenViewBaseWithCookie(TokenViewBase):
+#     def post(self, request, *args, **kwargs):
+
+#         serializer = self.get_serializer(data=request.data)
+
+#         try:
+#             serializer.is_valid(raise_exception=True)
+#         except TokenError as e:
+#             raise InvalidToken(e.args[0])
+
+#         resp = Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+#         # TODO: this should probably be pulled from the token exp
+#         expiration = datetime.utcnow() + jwt_settings.REFRESH_TOKEN_LIFETIME
+
+#         resp.set_cookie(
+#             settings.JWT_COOKIE_NAME,
+#             serializer.validated_data["refresh"],
+#             expires=expiration,
+#             secure=settings.JWT_COOKIE_SECURE,
+#             httponly=True,
+#             samesite=settings.JWT_COOKIE_SAMESITE,
+#         )
+
+#         return resp
+
+
+# class Login(TokenViewBaseWithCookie):
+#     serializer_class = TokenObtainPairSerializer
+
+
+# @require_POST
+# def LoginView(request):
+#     data = json.loads(request.body)
+#     username = data.get("username")
+#     password = data.get("password")
+
+#     if username is None or password is None:
+#         return JsonResponse({"info": "Username and Password is needed"})
+
+#     user = authenticate(username=username, password=password)
+
+#     if user is None:
+#         return JsonResponse({"info": "User does not exist"}, status=400)
+
+#     login(request, user)
+#     return JsonResponse({"info": "User logged in successfully"})
+
+
+# class RefreshToken(TokenViewBaseWithCookie):
+#     serializer_class = TokenRefreshSerializer
+
+
+# @api_view(["DELETE"])
+# def logout(request):
+#     token = request.headers["Authorization"].split()[-1]
+#     deleteToken(token)
+#     return Response(data=json.loads('{"action": "success"}'), status=status.HTTP_200_OK)
+
+
+# def get_csrf(request):
+#     response = JsonResponse({"Info": "Success - Set CSRF cookie"})
+#     response["X-CSRFToken"] = get_token(request)
+#     return response
+
+
+@api_view(["POST"])
+@permission_classes([])
+@authentication_classes([])
+def login(request: HttpRequest):
+    data = request.data
+    username = data.get("username")
+    password = data.get("password")
+
+    if not all([username, password]):
+        return Response(
+            data=errorResponse("Both username and password is required!"),
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    user = User.objects.filter(username=username).first()
+
+    if not user:
+        return Response(
+            data=errorResponse("Credentials are invalid!"),
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")) == False:
+        return Response(
+            data=errorResponse("Credentials are invalid!"),
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    token: Optional[str] = None
+
+    try:
+        token_row = Token.objects.get(accounts=user.id)
+        token = token_row.token
+
+        if check_old_token(token_row.created):
+            deleteToken(token)
+            raise Token.DoesNotExist
+
+    except Token.DoesNotExist:
+        token = generate_jwt_token(user.id)
+        Token(token=token, accounts=user.id, created=datetime.now(pytz.utc)).save()
+
+    response = Response(
+        data={**UserSerializer(user).data},
+        status=status.HTTP_202_ACCEPTED,
+    )
+    if data.get("remember_me") is not None:
+        max_age = 14 * 24 * 60 * 60  # 14 days
+        expires = datetime.strftime(
+            datetime.utcnow() + timedelta(seconds=max_age), "%Y-%m-%d %H:%M:%S"
+        )
+        response.set_cookie(
+            "token", token, max_age=max_age, expires=expires, httponly=True, secure=True
+        )
+        return response
+    response.set_cookie(
+        "token", token, max_age=None, expires=None, httponly=True, secure=True
+    )
+    return response
+
+
+# class logout(APIView):
+@api_view(["DELETE"])
+def logout(request):
+    response = Response(data="User logged out!", status=status.HTTP_200_OK)
+    token = request.COOKIES.get("token")
+    deleteToken(token)
+    response.delete_cookie("token")
+    return response
+
+
+### Serializers
+# from rest_framework_simplejwt import serializers as jwt_serializers
+# from rest_framework_simplejwt.settings import api_settings as jwt_settings
+# from rest_framework_simplejwt.tokens import RefreshToken
+
+# class TokenObtainPairSerializer(jwt_serializers.TokenObtainPairSerializer):
+#     @classmethod
+#     def get_token(cls, user):
+#         token = super().get_token(user)
+
+#         # Totoro claims
+#         token["name"] = user.username
+#         return token
+
+#     def validate(self, attrs):
+#         data = super().validate(attrs)
+
+#         refresh = self.get_token(self.user)
+
+#         data["refresh"] = str(refresh)
+#         data["refresh_expires"] = refresh["exp"]
+#         data["access"] = str(refresh.access_token)
+#         data["access_expires"] = refresh.access_token["exp"]
+
+#         return data
+
+
+# class TokenRefreshSerializer(serializers.Serializer):
+#     # Instead of inputting the refresh token from the HTTP body, we pull it
+#     # from the cookie
+
+#     def get_token_from_cookie(self):
+#         request = self.context.get("request")
+
+#         return request.COOKIES.get(settings.JWT_COOKIE_NAME)
+
+#     def validate(self, attrs):
+#         token = self.get_token_from_cookie()
+#         if token is None:
+#             raise serializers.ValidationError("No refresh token cookie found")
+#         refresh = RefreshToken(token)
+
+#         data = {
+#             "access": str(refresh.access_token),
+#             "access_expires": refresh.access_token["exp"],
+#         }
+
+#         if jwt_settings.BLACKLIST_AFTER_ROTATION:
+#             try:
+#                 # Attempt to blacklist the given refresh token
+#                 refresh.blacklist()
+#             except AttributeError:
+#                 # If blacklist app not installed, `blacklist` method will
+#                 # not be present
+#                 pass
+
+#         refresh.set_jti()
+#         refresh.set_exp()
+
+#         data["refresh"] = str(refresh)
+#         data["refresh_expires"] = refresh["exp"]
+
+#         return data
