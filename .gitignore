@@ -3,7 +3,9 @@
 .venv/**
 __pycache__/
 .env/
-migrations/
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
 /media
 
 # dependencies
@@ -23,7 +25,7 @@ migrations/
 .env.development.local
 .env.test.local
 .env.production.local
-
+**/settings/dev_settings.py
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
