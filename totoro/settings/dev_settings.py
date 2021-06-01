@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.discord",
 ]
 
 MIDDLEWARE = [
@@ -228,6 +230,11 @@ SIMPLE_JWT = {
 }
 
 SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "SCOPE": [
+            "user",
+        ],
+    },
     "google": {
         "SCOPE": [
             "profile",
@@ -236,7 +243,7 @@ SOCIALACCOUNT_PROVIDERS = {
         "AUTH_PARAMS": {
             "access_type": "online",
         },
-    }
+    },
 }
 
 # we are turning off email verification for now
