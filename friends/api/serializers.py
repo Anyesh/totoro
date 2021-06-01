@@ -1,5 +1,6 @@
-from friends.models import Friend, FriendRequest
 from rest_framework import serializers
+
+from friends.models import Friend, FriendRequest
 
 
 class FriendSerializer(serializers.ModelSerializer):

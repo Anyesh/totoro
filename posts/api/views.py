@@ -1,20 +1,21 @@
 import json
-from datetime import datetime, time
+from datetime import datetime
 
 import pytz
-from account.api.serializers import UserSerializer
-from account.models import Token, User
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from accounts.api.serializers import UserSerializer
+from accounts.models import Token, User
 from friends.models import Friend
 from helpers.api_error_response import errorResponse
 from helpers.error_messages import INVALID_TOKEN, UNAUTHORIZED
 from notifications.models import Notification
 from posts.api.serializers import PostsSerializer
 from posts.models import Comment, Posts
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 
 # Get Posts of a user, Auth: not required
@@ -239,7 +240,7 @@ def getUserID(request):
             errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )
     try:
-        return Token.objects.get(token=token).account
+        return Token.objects.get(token=token).accounts
     except Token.DoesNotExist:
         return Response(
             errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST

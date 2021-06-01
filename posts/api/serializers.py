@@ -1,7 +1,8 @@
-from account.api.serializers import UserSerializer
-from account.models import User
-from posts.models import Comment, Posts
 from rest_framework import serializers
+
+from accounts.api.serializers import UserSerializer
+from accounts.models import User
+from posts.models import Comment, Posts
 
 
 class PostsSerializer(serializers.ModelSerializer):

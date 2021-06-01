@@ -1,5 +1,6 @@
 from django.contrib import admin
-from posts.models import Posts, Comment
+
+from posts.models import Comment, Posts
 
 # Register your models here.
 admin.site.register(Posts)

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class Notification(models.Model):
     # seen: 0 (not-seen) or 1 (seen)

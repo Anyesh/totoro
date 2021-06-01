@@ -1,17 +1,18 @@
 import json
 from datetime import datetime
 
-from account.api.serializers import UserSerializer
-from account.models import Token, User
 from django.db.models import Q
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from accounts.api.serializers import UserSerializer
+from accounts.models import Token, User
 from friends.models import Friend
 from helpers.api_error_response import errorResponse
 from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
 from notifications.models import Notification
 from posts.models import Comment, Posts
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 from .serializers import CommentSerializer
 
@@ -59,7 +60,7 @@ def postNewComment(request, post_id):
     # Filtering
     if post.user_id != user:
         # post author themselves are not commenting on their post
-        if isFriends(post.user_id, user) == False:
+        if not isFriends(post.user_id, user):
             # post author and user trying to comment are not friends
             # if they are friends then we let the commentator post a comment
             return Response(
@@ -96,7 +97,6 @@ def postNewComment(request, post_id):
                 notification.save()
         except Comment.DoesNotExist:
             print("errored")
-            pass
         return Response(
             data={
                 **commentSerializer.data,
@@ -164,7 +164,7 @@ def getUserID(request):
             errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )
     try:
-        return Token.objects.get(token=token).account
+        return Token.objects.get(token=token).accounts
     except Token.DoesNotExist:
         return Response(
             errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
