@@ -10,5 +10,5 @@ urlpatterns = [
     # path("user/refresh-token/", RefreshToken.as_view()),
     path("user/edit/", editProfile),
     path("user/search/<query>/", searchUsers),
-    path("user/u/<slug>/", get_user_info),
+    path("user/u/<username>/", get_user_info),
 ]
