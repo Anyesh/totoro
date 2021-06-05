@@ -1,4 +1,4 @@
-.env
+
 .venv
 .venv/**
 __pycache__/
@@ -32,8 +32,9 @@ yarn-error.log*
 
 *.lock
 
-*.sqlite3
 .vscode
 .vscode/**
 *.log
-*.env
+
+
+settings/dev_settings.py
