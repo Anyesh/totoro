@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -39,12 +40,25 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    # Internal
     "accounts",
     "posts",
     "friends",
     "notifications",
+    # External
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
+    # Auth
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.discord",
 ]
 
 MIDDLEWARE = [
@@ -57,6 +71,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
+if not DEBUG:
+    MIDDLEWARE += [
+        "totoro.middleware.exceptions.ExceptionMiddleware",
+    ]
+
+
+AUTH_USER_MODEL = "accounts.User"
+
+# REST_AUTH_SERIALIZERS = {
+#     'USER_DETAILS_SERIALIZER': 'totoro.serializers.CustomUserModelSerializer'
+# }
 
 ROOT_URLCONF = "totoro.urls"
 
@@ -107,6 +134,8 @@ CSRF_TRUSTED_ORIGINS = [
     "locahost:8000",
     "locahost:3000",
 ]
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -169,4 +198,68 @@ STATICFILES_DIRS = [
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
-APPEND_SLASH = False
+
+CALLBACK_URL = "http://localhost:3000"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.UserRateThrottle",
+        # 'rest_framework.throttling.AnonRateThrottle',
+    ),
+    "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
+    "DEFAULT_THROTTLE_RATES": {
+        "loginAttempts": "6/hr",
+        "user": "1000/min",
+    },
+}
+
+REST_AUTH_SERIALIZERS = {
+    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer"
+}
+
+
+# JWT Settings
+SIMPLE_JWT = {
+    "ALGORITHM": "HS256",
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "USER_ID_FIELD": "user_id",  # for the totoro user model
+    "USER_ID_CLAIM": "user_id",
+    "SIGNING_KEY": SECRET_KEY,
+}
+
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "SCOPE": [
+            "user",
+        ],
+    },
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    },
+}
+
+# we are turning off email verification for now
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+
+SITE_ID = 1  # https://dj-rest-auth.readthedocs.io/en/latest/installation.html#registration-optional
+REST_USE_JWT = True  # use JSON Web Tokens
+JWT_AUTH_COOKIE = "totoro-access-token"
+JWT_AUTH_REFRESH_COOKIE = "totoro-refresh-token"
+JWT_AUTH_SAMESITE = "Lax"

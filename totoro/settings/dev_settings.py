@@ -204,7 +204,10 @@ CALLBACK_URL = "http://localhost:3000"
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.utils.JWTCookieAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.UserRateThrottle",
         # 'rest_framework.throttling.AnonRateThrottle',
@@ -216,9 +219,14 @@ REST_FRAMEWORK = {
     },
 }
 
+REST_AUTH_SERIALIZERS = {
+    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer"
+}
+
 
 # JWT Settings
 SIMPLE_JWT = {
+    "ALGORITHM": "HS256",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
