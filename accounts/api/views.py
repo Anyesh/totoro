@@ -1,25 +1,22 @@
 import json
-from datetime import datetime
-from random import randrange
 from secrets import token_hex
 
-import pytz
+from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.api.serializers import UserSerializer
-from accounts.api.utils import generate_hash
 from accounts.models import Token, User
 from friends.models import Friend, FriendRequest
 from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
 from posts.api.serializers import CommentSerializer, PostsSerializer
 from posts.models import Comment, Posts
+from totoro.utils import get_response
 
 
 @api_view(["GET"])
@@ -103,60 +100,24 @@ def get_user_info(request, username):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(["POST", "PUT"])
-@csrf_exempt
-def signup(request):
-    if request.method == "POST":
-        # -- user data & hash password
-        req_dict = request.data
-        req_dict["password"] = generate_hash(req_dict["password"])
-        req_dict["slug"] = req_dict["first_name"].lower().split()[-1] + str(
-            randrange(1111, 9999)
+from django.contrib.auth import logout as django_logout
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response(
+            data=get_response(message="User logged out", status=True, result="Success"),
+            status=status.HTTP_200_OK,
         )
-        req_dict["created"] = datetime.now().timestamp()
-        req_dict["updated"] = datetime.now().timestamp()
-        userSerializer = UserSerializer(data=req_dict)
-        # -- check if data is without bad actors
-        if userSerializer.is_valid():
-            userSerializer.save()
-            # -- assign an auth token
-            token = genToken()
-            Token(
-                token=token,
-                accounts=User.objects.get(email=req_dict["email"]).id,
-                created=datetime.now(pytz.utc),
-            ).save()
-            return Response(
-                data={**tokenResponse(token), **userSerializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-        else:
-            return Response(
-                data=userSerializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-    elif request.method == "PUT":
-        user = getUserID(request)
-        if type(user) is Response:
-            return user
-
         try:
-            user_object = User.objects.get(pk=user)
-            user_object.tagline = request.data["tagline"]
-            user_object.avatar = request.data["avatar"]
-            user_object.hometown = request.data["hometown"]
-            user_object.work = request.data["work"]
-            user_object.save()
+            request.user.auth_token.delete()
+        except Exception:
+            pass
+        django_logout(request)
+        response.delete_cookie(settings.JWT_AUTH_COOKIE)
+        response.delete_cookie(settings.JWT_AUTH_REFRESH_COOKIE)
 
-            token = Token.objects.get(accounts=user).token
-
-            return Response(
-                data={**tokenResponse(token), **UserSerializer(user_object).data},
-                status=status.HTTP_200_OK,
-            )
-        except User.DoesNotExist:
-            return Response(
-                data=errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
-            )
+        return response
 
 
 @api_view(["PUT"])

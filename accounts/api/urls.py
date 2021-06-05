@@ -1,13 +1,16 @@
 # from .views import get_csrf, RefreshToken, Ping
+from dj_rest_auth.jwt_auth import get_refresh_view
 from django.urls import path
+from rest_framework_simplejwt.views import TokenVerifyView
 
-from accounts.api.views import Ping, editProfile, get_user_info, searchUsers, signup
+from accounts.api.views import LogoutView, Ping, editProfile, get_user_info, searchUsers
 
 urlpatterns = [
     # path("api/user/get-csrf/", get_csrf),
-    path("user/signup/", signup),
     path("user/ping/", Ping.as_view()),
-    # path("user/refresh-token/", RefreshToken.as_view()),
+    path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("auth/token/verify/", TokenVerifyView().as_view(), name="token_verify"),
+    path("auth/token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
     path("user/edit/", editProfile),
     path("user/search/<query>/", searchUsers),
     path("user/u/<username>/", get_user_info),

@@ -23,7 +23,7 @@ from django.urls.resolvers import URLResolver
 
 api_urls: List[URLResolver] = [
     path("social/", include("accounts.urls")),
-    path("auth/", include("dj_rest_auth.urls")),
+    # path("auth/", include("dj_rest_auth.urls")),
     path("", include("accounts.api.urls")),
     path("", include("posts.api.urls")),
     path("", include("friends.api.urls")),
@@ -37,5 +37,5 @@ admin_url: List[URLResolver] = [
 urlpatterns: List[URLResolver] = [
     path("api/", include(api_urls)),
     *admin_url,
-    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),  # type: ignore
 ]
