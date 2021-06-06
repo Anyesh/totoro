@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -28,7 +29,7 @@ STATIC_DIR = BASE_DIR / "static"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 # Application definition
@@ -191,15 +192,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    STATIC_DIR,
-]
+STATICFILES_DIRS = [BASE_DIR / STATIC_DIR]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
 
-CALLBACK_URL = "http://localhost:3000"
+CALLBACK_URL = "https://totoro-frontend.vercel.app"
 
 
 REST_FRAMEWORK = {
