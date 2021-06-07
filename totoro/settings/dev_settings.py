@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # External
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     # Auth
     "dj_rest_auth",
@@ -81,9 +82,6 @@ if not DEBUG:
 
 AUTH_USER_MODEL = "accounts.User"
 
-# REST_AUTH_SERIALIZERS = {
-#     'USER_DETAILS_SERIALIZER': 'totoro.serializers.CustomUserModelSerializer'
-# }
 
 ROOT_URLCONF = "totoro.urls"
 
@@ -110,7 +108,7 @@ WSGI_APPLICATION = "totoro.wsgi.application"
 
 ALLOWED_HOSTS = ["*"]
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
@@ -222,14 +220,15 @@ REST_FRAMEWORK = {
 }
 
 REST_AUTH_SERIALIZERS = {
-    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer"
+    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer",
+    # "USER_DETAILS_SERIALIZER": "accounts.api.serializers.TotoroUserModelSerializer",
 }
 
 
 # JWT Settings
 SIMPLE_JWT = {
     "ALGORITHM": "HS256",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
