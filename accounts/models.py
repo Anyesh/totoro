@@ -108,12 +108,3 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
-
-
-class Token(models.Model):
-    token = models.CharField(max_length=100)
-    accounts = models.IntegerField()
-    created = models.DateTimeField()
-
-    def __str__(self):
-        return "user_id: " + str(self.accounts)
