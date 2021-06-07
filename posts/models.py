@@ -7,7 +7,7 @@ def upload_path(instance, filename):
 
 # Create your models here.
 class Posts(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.CharField(max_length=16)
     post_text = models.TextField()
     post_image = models.ImageField(blank=True, null=True, upload_to=upload_path)
     likes = models.JSONField(default=dict)
@@ -20,11 +20,11 @@ class Posts(models.Model):
 
 class Comment(models.Model):
     # comment_parent if equal to pk then comment is top level comment
-    post_id = models.IntegerField()
-    user_id = models.IntegerField()
+    post_id = models.CharField(max_length=16)
+    user_id = models.CharField(max_length=16)
     comment_text = models.TextField(blank=False)
     comment_likes = models.JSONField(default=dict)
-    comment_parent = models.IntegerField()
+    comment_parent = models.CharField(max_length=16)
     created = models.FloatField()
     updated = models.FloatField()
 

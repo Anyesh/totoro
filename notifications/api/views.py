@@ -7,9 +7,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from accounts.api.serializers import UserSerializer
-from accounts.models import Token, User
-from helpers.api_error_response import errorResponse
-from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
+from accounts.models import User
+from helpers.api_error_response import error_response
+from helpers.error_messages import INVALID_REQUEST
 from notifications.models import Notification
 
 # seen [0:not-seen, 1:seen]
@@ -19,7 +19,7 @@ from notifications.models import Notification
 
 @api_view(["GET"])
 def getNotifications(request):
-    user_id = getUserID(request)
+    user_id = request.user
     if type(user_id) is Response:
         return user_id
 
@@ -46,7 +46,7 @@ def getNotifications(request):
 
 @api_view(["PUT"])
 def markAsSeen(request, pk):
-    user_id = getUserID(request)
+    user_id = request.user
     if type(user_id) is Response:
         return user_id
 
@@ -57,13 +57,13 @@ def markAsSeen(request, pk):
         return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)
     except Notification.DoesNotExist:
         return Response(
-            errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+            error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )
 
 
 @api_view(["PUT"])
 def markAllAsSeen(request):
-    user_id = getUserID(request)
+    user_id = request.user
     if type(user_id) is Response:
         return user_id
 
@@ -73,20 +73,3 @@ def markAllAsSeen(request):
         notification.seen = 1
         notification.save()
     return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)
-
-
-# Helper Functions
-# -----------------------------------------------
-def getUserID(request):
-    try:
-        token = request.headers["Authorization"].split()[-1]
-    except KeyError:
-        return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        return Token.objects.get(token=token).accounts
-    except Token.DoesNotExist:
-        return Response(
-            errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
-        )

@@ -1,5 +1,5 @@
 import json
 
 
-def errorResponse(message):
+def error_response(message):
     return json.loads('{"error": "' + message + '"}')

@@ -9,10 +9,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from accounts.api.serializers import UserSerializer
-from accounts.models import Token, User
+from accounts.models import User
 from friends.models import Friend
-from helpers.api_error_response import errorResponse
-from helpers.error_messages import INVALID_TOKEN, UNAUTHORIZED
+from helpers.api_error_response import error_response
+from helpers.error_messages import UNAUTHORIZED
 from notifications.models import Notification
 from posts.api.serializers import PostsSerializer
 from posts.models import Comment, Posts
@@ -33,7 +33,7 @@ def __userPosts(pk):
         return Response(data=postsSerializer.data, status=status.HTTP_200_OK)
     else:
         return Response(
-            errorResponse("No posts found!"), status=status.HTTP_404_NOT_FOUND
+            error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -41,7 +41,7 @@ def __userPosts(pk):
 # -----------------------------------------------
 @api_view(["GET"])
 def getLoggedInUserPosts(request):
-    user_id = getUserID(request)
+    user_id = request.user.user_id
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -52,7 +52,7 @@ def getLoggedInUserPosts(request):
 # -----------------------------------------------
 @api_view(["GET"])
 def getPosts(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -78,7 +78,7 @@ def getPosts(request):
             return Response(data=posts_final, status=status.HTTP_200_OK)
         else:
             return Response(
-                errorResponse("No posts found!"), status=status.HTTP_404_NOT_FOUND
+                error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
             )
     except Friend.DoesNotExist:
         data = Posts.objects.filter(user_id=user_id)
@@ -87,7 +87,7 @@ def getPosts(request):
             return Response(data=postsSerializer.data, status=status.HTTP_200_OK)
         else:
             return Response(
-                errorResponse("No posts found!"), status=status.HTTP_404_NOT_FOUND
+                error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
             )
 
 
@@ -95,7 +95,7 @@ def getPosts(request):
 # -----------------------------------------------
 @api_view(["POST"])
 def newPost(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -135,7 +135,7 @@ def postOperations(request, pk):
     elif request.method == "DELETE":
         return deletePost(request, pk)
     return Response(
-        errorResponse("unable to complete request"),
+        error_response("unable to complete request"),
         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
@@ -155,14 +155,14 @@ def getPost(post_key):
         )
     except Posts.DoesNotExist:
         return Response(
-            errorResponse("Post not found!"), status=status.HTTP_404_NOT_FOUND
+            error_response("Post not found!"), status=status.HTTP_404_NOT_FOUND
         )
 
 
 # Like or unlike a post, Auth: REQUIRED
 # -----------------------------------------------
 def likePost(request, post_key):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -195,7 +195,7 @@ def likePost(request, post_key):
 # @required in request: post_text, post_image
 # -----------------------------------------------
 def editPost(request, post_key):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -208,14 +208,14 @@ def editPost(request, post_key):
         return Response(PostsSerializer(post).data, status=status.HTTP_200_OK)
     else:
         return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
+            error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )
 
 
 # delete a post, Auth: REQUIRED
 # -----------------------------------------------
 def deletePost(request, post_key):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -226,22 +226,5 @@ def deletePost(request, post_key):
         return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)
     else:
         return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-
-
-# Helper Functions
-# *********************************************
-def getUserID(request):
-    try:
-        token = request.headers["Authorization"].split()[-1]
-    except [KeyError, Token.DoesNotExist]:
-        return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        return Token.objects.get(token=token).accounts
-    except Token.DoesNotExist:
-        return Response(
-            errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
+            error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )

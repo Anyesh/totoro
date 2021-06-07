@@ -9,10 +9,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from accounts.api.serializers import UserSerializer
-from accounts.models import Token, User
+from accounts.models import User
 from friends.models import Friend, FriendRequest
-from helpers.api_error_response import errorResponse
-from helpers.error_messages import INVALID_TOKEN, UNAUTHORIZED
+from helpers.api_error_response import error_response
 from notifications.models import Notification
 
 from .serializers import FriendRequestSerializer, FriendSerializer
@@ -22,7 +21,7 @@ from .serializers import FriendRequestSerializer, FriendSerializer
 # -----------------------------------------------
 @api_view(["GET"])
 def getFriends(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -38,11 +37,11 @@ def getFriends(request):
             users_dict = [UserSerializer(user).data for user in users]
             return Response(data=users_dict, status=status.HTTP_200_OK)
         return Response(
-            data=errorResponse("No friends found!"), status=status.HTTP_404_NOT_FOUND
+            data=error_response("No friends found!"), status=status.HTTP_404_NOT_FOUND
         )
     except Friend.DoesNotExist:
         return Response(
-            data=errorResponse("No friends found!"), status=status.HTTP_404_NOT_FOUND
+            data=error_response("No friends found!"), status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -50,7 +49,7 @@ def getFriends(request):
 # -----------------------------------------------
 @api_view(["GET"])
 def getFriendRequests(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -78,7 +77,7 @@ def getFriendRequests(request):
                 FriendRequest.objects.get(pk=fr.id).delete()
         return Response(data=dict(requests=friendrequests), status=status.HTTP_200_OK)
     return Response(
-        data=errorResponse("No friend requests!"), status=status.HTTP_200_OK
+        data=error_response("No friend requests!"), status=status.HTTP_200_OK
     )
 
 
@@ -89,7 +88,7 @@ def getFriendRequests(request):
 def sendFriendRequest(request):
     if request.method == "POST":
         # REQUIRED: 'to_user' field in request
-        user_id = getUserID(request)
+        user_id = request.user
         # If user_id type is Response that means we have errored
         if type(user_id) is Response:
             return user_id
@@ -99,14 +98,14 @@ def sendFriendRequest(request):
         # Can't send oneself the friend request
         if req_dict["to_user"] == user_id:
             return Response(
-                errorResponse("Cannot send friend request to yourself."),
+                error_response("Cannot send friend request to yourself."),
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if user we are sending request to exist
         if not User.objects.filter(pk=req_dict["to_user"]).exists():
             return Response(
-                errorResponse("User does not exist."),
+                error_response("User does not exist."),
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -116,7 +115,7 @@ def sendFriendRequest(request):
                 Q(from_user=user_id) & Q(to_user=req_dict["to_user"])
             )
             return Response(
-                errorResponse("Friend request is already sent."),
+                error_response("Friend request is already sent."),
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except FriendRequest.DoesNotExist:
@@ -127,7 +126,7 @@ def sendFriendRequest(request):
                     | Q(user_a=req_dict["to_user"]) & Q(user_b=user_id)
                 )
                 return Response(
-                    errorResponse("Already friends."),
+                    error_response("Already friends."),
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             except Friend.DoesNotExist:
@@ -160,7 +159,7 @@ def sendFriendRequest(request):
 # -----------------------------------------------
 @api_view(["PUT"])
 def acceptFriendRequest(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -199,12 +198,12 @@ def acceptFriendRequest(request):
                     return res
                 return res
         return Response(
-            errorResponse("Unable to accept friend request."),
+            error_response("Unable to accept friend request."),
             status=status.HTTP_400_BAD_REQUEST,
         )
     except FriendRequest.DoesNotExist:
         return Response(
-            errorResponse("Friend request is invalid."),
+            error_response("Friend request is invalid."),
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -213,7 +212,7 @@ def acceptFriendRequest(request):
 # -----------------------------------------------
 @api_view(["DELETE"])
 def deleteFriendRequest(request, pk):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -224,14 +223,14 @@ def deleteFriendRequest(request, pk):
         return Response(
             data=json.loads('{"action": "success"}'), status=status.HTTP_200_OK
         )
-    return Response(errorResponse("Bad Request."), status=status.HTTP_400_BAD_REQUEST)
+    return Response(error_response("Bad Request."), status=status.HTTP_400_BAD_REQUEST)
 
 
 # Friend Suggestions for user
 # -----------------------------------------------
 @api_view(["GET"])
 def getFriendSuggestions(request):
-    user_id = getUserID(request)
+    user_id = request.user
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
@@ -267,22 +266,5 @@ def getFriendSuggestions(request):
             data=dict(friend_suggestions=users_dict), status=status.HTTP_200_OK
         )
     return Response(
-        errorResponse("No friend suggestions."), status=status.HTTP_204_NO_CONTENT
+        error_response("No friend suggestions."), status=status.HTTP_204_NO_CONTENT
     )
-
-
-# Helper Functions
-# -----------------------------------------------
-def getUserID(request):
-    try:
-        token = request.headers["Authorization"].split()[-1]
-    except [KeyError, Token.DoesNotExist]:
-        return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        return Token.objects.get(token=token).accounts
-    except Token.DoesNotExist:
-        return Response(
-            errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
-        )

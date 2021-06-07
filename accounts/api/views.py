@@ -2,6 +2,7 @@ import json
 from secrets import token_hex
 
 from django.conf import settings
+from django.contrib.auth import logout as django_logout
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 from django.http import JsonResponse
@@ -10,97 +11,91 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.api.serializers import UserSerializer
-from accounts.models import Token, User
-from friends.models import Friend, FriendRequest
-from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
-from posts.api.serializers import CommentSerializer, PostsSerializer
-from posts.models import Comment, Posts
+from accounts.api.serializers import ProfileSerializer, UserSerializer
+from accounts.models import Profile, User
+from helpers.api_error_response import error_response
+from helpers.error_messages import INVALID_REQUEST
 from totoro.utils import get_response
 
 
 @api_view(["GET"])
 def get_user_info(request, username):
-    requesting_user = getUserID(request)
+    requesting_user = request.user
     if type(requesting_user) is Response:
         return requesting_user
 
     try:
-        data = User.objects.get(username=username)
-        wanted_user = data.id
+        data = Profile.objects.get(user__username=username)
         # user
-        userSerializer = UserSerializer(data)
+        userSerializer = ProfileSerializer(data)
         # comments
-        comments = CommentSerializer(
-            Comment.objects.filter(user_id=wanted_user).order_by("-pk")[:3].values(),
-            many=True,
-        ).data
-        # posts
-        posts = Posts.objects.filter(user_id=wanted_user).order_by("pk").values()
-        posts_final = []
-        for post in posts:
-            post_by = UserSerializer(User.objects.get(pk=post["user_id"])).data
-            posts_final.append(
-                {
-                    **PostsSerializer(Posts.objects.get(pk=post["id"])).data,
-                    "user": post_by,
-                }
-            )
-        # friends
-        try:
-            data = Friend.objects.filter(Q(user_a=wanted_user) | Q(user_b=wanted_user))
-            friends = [
-                entry.user_a if entry.user_a is not wanted_user else entry.user_b
-                for entry in data
-            ]
-            if friends:
-                users = User.objects.filter(id__in=friends)
-                users_dict = [UserSerializer(user).data for user in users]
-                friends = users_dict
-        except Friend.DoesNotExist:
-            friends = []
+        # comments = CommentSerializer(
+        #     Comment.objects.filter(user_id=wanted_user).order_by("-pk")[:3].values(),
+        #     many=True,
+        # ).data
+        # # posts
+        # posts = Posts.objects.filter(user_id=wanted_user).order_by("pk").values()
+        # posts_final = []
+        # for post in posts:
+        #     post_by = UserSerializer(User.objects.get(pk=post["user_id"])).data
+        #     posts_final.append(
+        #         {
+        #             **PostsSerializer(Posts.objects.get(pk=post["id"])).data,
+        #             "user": post_by,
+        #         }
+        #     )
+        # # friends
+        # try:
+        #     data = Friend.objects.filter(Q(user_a=wanted_user) | Q(user_b=wanted_user))
+        #     friends = [
+        #         entry.user_a if entry.user_a is not wanted_user else entry.user_b
+        #         for entry in data
+        #     ]
+        #     if friends:
+        #         users = User.objects.filter(id__in=friends)
+        #         users_dict = [UserSerializer(user).data for user in users]
+        #         friends = users_dict
+        # except Friend.DoesNotExist:
+        #     friends = []
 
-        # isFriend: Check if user requesting this info is friends with the user
-        # we only check if wanted user and requesting user are different
-        isFriend = None
-        if requesting_user is not wanted_user:
-            try:
-                Friend.objects.get(
-                    Q(user_a=requesting_user) & Q(user_b=wanted_user)
-                    | Q(user_a=wanted_user) & Q(user_b=requesting_user)
-                )
-                isFriend = True
-            except Friend.DoesNotExist:
-                isFriend = False
+        # # isFriend: Check if user requesting this info is friends with the user
+        # # we only check if wanted user and requesting user are different
+        # isFriend = None
+        # if requesting_user is not wanted_user:
+        #     try:
+        #         Friend.objects.get(
+        #             Q(user_a=requesting_user) & Q(user_b=wanted_user)
+        #             | Q(user_a=wanted_user) & Q(user_b=requesting_user)
+        #         )
+        #         isFriend = True
+        #     except Friend.DoesNotExist:
+        #         isFriend = False
 
-        # isFriendReqSent: Check if the requesting user has already sent a friend req to wanted user
-        # we only check if they are not already friends
-        isFriendReqSent = None
-        if isFriend is False:
-            try:
-                FriendRequest.objects.get(
-                    Q(from_user=requesting_user) & Q(to_user=wanted_user)
-                )
-                isFriendReqSent = True
-            except FriendRequest.DoesNotExist:
-                isFriendReqSent = False
+        # # isFriendReqSent: Check if the requesting user has already sent a friend req to wanted user
+        # # we only check if they are not already friends
+        # isFriendReqSent = None
+        # if isFriend is False:
+        #     try:
+        #         FriendRequest.objects.get(
+        #             Q(from_user=requesting_user) & Q(to_user=wanted_user)
+        #         )
+        #         isFriendReqSent = True
+        #     except FriendRequest.DoesNotExist:
+        #         isFriendReqSent = False
 
         return Response(
             {
-                "user": userSerializer.data,
-                "friends": friends,
-                "posts": posts_final,
-                "comments": comments,
-                "isFriend": isFriend,
-                "isFriendReqSent": isFriendReqSent,
+                "user_info": userSerializer.data,
+                # "friends": friends,
+                # "posts": posts_final,
+                # "comments": comments,
+                # "isFriend": isFriend,
+                # "isFriendReqSent": isFriendReqSent,
             },
             status=status.HTTP_200_OK,
         )
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-from django.contrib.auth import logout as django_logout
 
 
 class LogoutView(APIView):
@@ -121,13 +116,11 @@ class LogoutView(APIView):
 
 
 @api_view(["PUT"])
-def editProfile(request):
-    user = getUserID(request)
-    if type(user) is Response:
-        return user
+def edit_profile(request):
+    user = request.user.user_id
 
     try:
-        user_object = User.objects.get(pk=user)
+        user_object = User.objects.get(user_id=user)
         user_object.tagline = request.data["tagline"]
         user_object.avatar = remove_prefix(request.data["avatar"], "/media")
         user_object.hometown = request.data["hometown"]
@@ -137,21 +130,20 @@ def editProfile(request):
 
         return Response(
             data={
-                **tokenResponse(request.headers["Authorization"].split()[-1]),
+                **token_response(request.headers["Authorization"].split()[-1]),
                 **UserSerializer(user_object).data,
             },
             status=status.HTTP_200_OK,
         )
     except User.DoesNotExist:
         return Response(
-            data=errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+            data=error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )
 
 
 @api_view(["GET"])
-def searchUsers(request, query):
-    # this is keep it only accessible to logged in users
-    user = getUserID(request)
+def search_users(request, query):
+    user = request.user
     if type(user) is Response:
         return user
 
@@ -168,34 +160,11 @@ def searchUsers(request, query):
         return Response(data=results.data, status=status.HTTP_200_OK)
     else:
         return Response(
-            errorResponse("No search results!"), status=status.HTTP_404_NOT_FOUND
+            error_response("No search results!"), status=status.HTTP_404_NOT_FOUND
         )
 
 
-def getUserID(request):
-    try:
-        token = request.headers["Authorization"].split()[-1]
-    except KeyError:
-        return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        return Token.objects.get(token=token).accounts
-    except Token.DoesNotExist:
-        return Response(
-            errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
-        )
-
-
-def deleteToken(token):
-    Token.objects.filter(token=token).delete()
-
-
-def errorResponse(message):
-    return json.loads('{"error": ["' + message + '"]}')
-
-
-def tokenResponse(token):
+def token_response(token):
     return json.loads('{"token": "' + str(token) + '"}')
 
 

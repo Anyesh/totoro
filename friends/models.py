@@ -4,8 +4,8 @@ from django.db import models
 # Create your models here.
 class Friend(models.Model):
 
-    user_a = models.IntegerField()
-    user_b = models.IntegerField()
+    user_a = models.CharField(max_length=16)
+    user_b = models.CharField(max_length=16)
     since = models.FloatField()
 
     def __str__(self):
@@ -20,8 +20,8 @@ class Friend(models.Model):
 
 
 class FriendRequest(models.Model):
-    from_user = models.IntegerField()
-    to_user = models.IntegerField()
+    from_user = models.CharField(max_length=16)
+    to_user = models.CharField(max_length=16)
     since = models.FloatField()
 
     def __str__(self):

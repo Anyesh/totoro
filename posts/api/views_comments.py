@@ -7,10 +7,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from accounts.api.serializers import UserSerializer
-from accounts.models import Token, User
+from accounts.models import User
 from friends.models import Friend
-from helpers.api_error_response import errorResponse
-from helpers.error_messages import INVALID_REQUEST, INVALID_TOKEN, UNAUTHORIZED
+from helpers.api_error_response import error_response
+from helpers.error_messages import INVALID_REQUEST
 from notifications.models import Notification
 from posts.models import Comment, Posts
 
@@ -21,7 +21,7 @@ from .serializers import CommentSerializer
 # By default it requires user to be logged in and be friends with post author
 @api_view(["GET"])
 def getPostComments(request, post):
-    user = getUserID(request)
+    user = request.user
     if type(user) is Response:
         return user
 
@@ -29,18 +29,20 @@ def getPostComments(request, post):
     if type(author) is Response:
         return author
 
-    if isFriends(author.id, user) or author.id == user:
+    if isFriends(author.user_id, user) or author.user_id == user:
         # User can only retrieve comments if they are friends with author or author themselves
         result = [
             {
                 **comment,
-                "user": UserSerializer(User.objects.get(id=comment["user_id"])).data,
+                "user": UserSerializer(
+                    User.objects.get(user_id=comment["user_id"])
+                ).data,
             }
             for comment in Comment.objects.filter(post_id=post).order_by("pk").values()
         ]
         return Response({"comments": result}, status=status.HTTP_200_OK)
 
-    return Response(errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST)
+    return Response(error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST)
 
 
 # Post a new comment on a post
@@ -48,7 +50,7 @@ def getPostComments(request, post):
 # ---------------------------------------------------
 @api_view(["POST"])
 def postNewComment(request, post_id):
-    user = getUserID(request)
+    user = request.user
     if type(user) is Response:
         return user
 
@@ -64,7 +66,7 @@ def postNewComment(request, post_id):
             # post author and user trying to comment are not friends
             # if they are friends then we let the commentator post a comment
             return Response(
-                errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+                error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
             )
 
     commentSerializer = CommentSerializer(
@@ -100,7 +102,7 @@ def postNewComment(request, post_id):
         return Response(
             data={
                 **commentSerializer.data,
-                "user": UserSerializer(User.objects.get(id=user)).data,
+                "user": UserSerializer(User.objects.get(user_id=user)).data,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -112,7 +114,7 @@ def postNewComment(request, post_id):
 # ---------------------------------------------------
 @api_view(["PUT", "DELETE", "POST"])
 def actionsComment(request, post_id, pk):
-    user_id = getUserID(request)
+    user_id = request.user
     if type(user_id) is Response:
         return user_id
 
@@ -148,27 +150,27 @@ def actionsComment(request, post_id, pk):
                 )
         except Comment.DoesNotExist:
             return Response(
-                errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+                error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
             )
 
-    return Response(errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST)
+    return Response(error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST)
 
 
 # Helper Functions
-# *********************************************
-def getUserID(request):
-    try:
-        token = request.headers["Authorization"].split()[-1]
-    except KeyError:
-        return Response(
-            errorResponse(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-    try:
-        return Token.objects.get(token=token).accounts
-    except Token.DoesNotExist:
-        return Response(
-            errorResponse(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
-        )
+# # *********************************************
+# def (request.user):
+#     try:
+#         token = request.headers["Authorization"].split()[-1]
+#     except KeyError:
+#         return Response(
+#             error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
+#         )
+#     try:
+#         return Token.objects.get(token=token).accounts
+#     except Token.DoesNotExist:
+#         return Response(
+#             error_response(INVALID_TOKEN), status=status.HTTP_400_BAD_REQUEST
+#         )
 
 
 def isFriends(user_a, user_b):
@@ -186,14 +188,14 @@ def getAuthor(post):
     try:
         post_author_id = Posts.objects.get(id=post).user_id
         try:
-            return User.objects.get(id=post_author_id)
+            return User.objects.get(user_id=post_author_id)
         except User.DoesNotExist:
             return Response(
-                errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+                error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
             )
     except Posts.DoesNotExist:
         return Response(
-            errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+            error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -202,5 +204,5 @@ def getPost(post):
         return Posts.objects.get(id=post)
     except Posts.DoesNotExist:
         return Response(
-            errorResponse(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+            error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )

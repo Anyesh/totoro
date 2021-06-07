@@ -6,12 +6,13 @@ class Notification(models.Model):
     # seen: 0 (not-seen) or 1 (seen)
     seen = models.IntegerField(default=0)
 
-    # noti: notification type _> 0: post like, 1: new comment, 2: comment like, 3: new friend req, 4: friend request accepted
+    # noti: notification type _> 0: post like, 1: new comment,
+    # 2: comment like, 3: new friend req, 4: friend request accepted
     # 5: comment reply
     noti = models.IntegerField()
 
-    user_for = models.IntegerField()
-    user_from = models.IntegerField()
+    user_for = models.CharField(max_length=16)
+    user_from = models.CharField(max_length=16)
 
     # about: _> friend or post
     about = models.IntegerField()
