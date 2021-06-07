@@ -8,6 +8,12 @@ from accounts.models import Gender, Profile, User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        exclude = ["password", "user_permissions", "groups"]
+
+
+class TotoroUserModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = [
             "user_id",
             "username",
@@ -16,13 +22,11 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        user = User.objects.create_user(
+        return User.objects.create_user(
             validated_data["username"],
             validated_data["email"],
             validated_data["password"],
         )
-
-        return user
 
 
 class GenderSerializer(serializers.ModelSerializer):
@@ -43,7 +47,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "gender",
-            "email",
             "avatar",
             "birthday",
             "tagline",
