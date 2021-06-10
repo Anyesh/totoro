@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytz
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
+from django.http.response import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -16,10 +16,9 @@ from helpers.error_messages import UNAUTHORIZED
 from notifications.models import Notification
 from posts.api.serializers import PostsSerializer
 from posts.models import Comment, Posts
+from totoro.utils import get_response
 
 
-# Get Posts of a user, Auth: not required
-# -----------------------------------------------
 @api_view(["GET"])
 def userPosts(request, pk):
     return __userPosts(pk)
@@ -37,8 +36,6 @@ def __userPosts(pk):
         )
 
 
-# Returns only self posts of an user, Auth: REQUIRED
-# -----------------------------------------------
 @api_view(["GET"])
 def getLoggedInUserPosts(request):
     user_id = request.user.user_id
@@ -48,114 +45,110 @@ def getLoggedInUserPosts(request):
     return __userPosts(user_id)
 
 
-# Returns self + friends posts, Auth: REQUIRED
-# -----------------------------------------------
 @api_view(["GET"])
-def getPosts(request):
-    user_id = request.user
-    # If user_id type is Response that means we have errored
-    if type(user_id) is Response:
-        return user_id
+def get_posts(request):
+    user_id = request.user.user_id
+    friends = []
 
-    try:
-        data = Friend.objects.filter(Q(user_a=user_id) | Q(user_b=user_id))
+    data = Friend.objects.filter(Q(user_a=user_id) | Q(user_b=user_id))
+    if data:
         friends = [
             entry.user_a if entry.user_a is not user_id else entry.user_b
             for entry in data
         ]
         friends.append(user_id)
-        data = Posts.objects.filter(user_id__in=friends).order_by("pk").values()
-        posts_final = []
-        for post in data:
-            post_by = UserSerializer(User.objects.get(pk=post["user_id"])).data
-            posts_final.append(
-                {
-                    **PostsSerializer(Posts.objects.get(pk=post["id"])).data,
-                    "user": post_by,
-                }
-            )
-        if posts_final:
-            return Response(data=posts_final, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
-            )
-    except Friend.DoesNotExist:
-        data = Posts.objects.filter(user_id=user_id)
-        postsSerializer = PostsSerializer(data, many=True)
-        if postsSerializer.data:
-            return Response(data=postsSerializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
-            )
-
-
-# create new post, auth required
-# -----------------------------------------------
-@api_view(["POST"])
-def newPost(request):
-    user_id = request.user
-    # If user_id type is Response that means we have errored
-    if type(user_id) is Response:
-        return user_id
-    if request.data["post_image"] != "null":
-        print(request.data["post_image"])
-        req_data = {
-            "post_text": request.data["post_text"],
-            "post_image": request.data["post_image"],
-        }
     else:
-        req_data = {"post_text": request.data["post_text"]}
-    time_stamp = datetime.now().timestamp()
+        friends = [user_id]
+    data = Posts.objects.filter(author_id__in=friends).order_by("pk").values()
+    posts_final = []
+    for post in data:
+        author = UserSerializer(User.objects.get(pk=post["author_id"])).data
+        posts_final.append(
+            {
+                **PostsSerializer(
+                    Posts.objects.get(pk=post["id"]), context={"request": request}
+                ).data,
+                "author": author,
+            }
+        )
+
+    return JsonResponse(
+        data=get_response(
+            message="Posts retrieved succesfully!",
+            status_code=200,
+            status=True,
+            result={"data": posts_final},
+        ),
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+def new_post(request):
+    user = request.user.user_id
+    print(request.data)
+
+    req_data = {
+        "title": request.data.get("title"),
+        "image": request.data.get("image"),
+    }
+
     postsSerializer = PostsSerializer(
         data={
             **req_data,
-            **{"user_id": user_id, "created": time_stamp, "updated": time_stamp},
-        }
+            **{"author": user},
+        },
+        context={"request": request},
     )
     if postsSerializer.is_valid():
         postsSerializer.save()
-        return Response(data=postsSerializer.data, status=status.HTTP_201_CREATED)
-    return Response(postsSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# For operations on one singular post, Auth: REQUIRED
-# @url: api/post/<int:pk>
-# -----------------------------------------------
-@api_view(["GET", "DELETE", "PUT", "POST"])
-@csrf_exempt
-def postOperations(request, pk):
-    if request.method == "GET":
-        return getPost(pk)
-    elif request.method == "PUT":
-        return likePost(request, pk)
-    elif request.method == "POST":
-        return editPost(request, pk)
-    elif request.method == "DELETE":
-        return deletePost(request, pk)
-    return Response(
-        error_response("unable to complete request"),
-        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        return JsonResponse(
+            data=get_response(
+                message="Post created succesfully.",
+                result={"data": postsSerializer.data},
+                status=True,
+                status_code=201,
+            ),
+            status=status.HTTP_201_CREATED,
+        )
+    return JsonResponse(
+        data=get_response(
+            message="There was an error.",
+            result=postsSerializer.errors,
+            status=True,
+            status_code=400,
+        ),
+        status=status.HTTP_400_BAD_REQUEST,
     )
 
 
-# Get one specific post, Auth: not required
-# -----------------------------------------------
-def getPost(post_key):
+@api_view(["GET"])
+def get_post(request, pk):
     try:
-        data = Posts.objects.get(pk=post_key)
-        post_by = UserSerializer(User.objects.get(pk=data.user_id)).data
-        return Response(
-            data={
-                **PostsSerializer(Posts.objects.get(pk=data.id)).data,
-                "user": post_by,
-            },
+        data = Posts.objects.get(pk=pk)
+
+        return JsonResponse(
+            data=get_response(
+                message="Posts retrieved succesfully!",
+                status_code=200,
+                status=True,
+                result={
+                    "data": PostsSerializer(
+                        Posts.objects.get(pk=data.id), context={"request": request}
+                    ).data
+                },
+            ),
             status=status.HTTP_200_OK,
         )
     except Posts.DoesNotExist:
-        return Response(
-            error_response("Post not found!"), status=status.HTTP_404_NOT_FOUND
+        return JsonResponse(
+            data=get_response(
+                message="Post with given id not found!",
+                status_code=404,
+                status=False,
+                result={"data": []},
+            ),
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
