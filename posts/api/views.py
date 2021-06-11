@@ -86,7 +86,6 @@ def get_posts(request):
 @api_view(["POST"])
 def new_post(request):
     user = request.user.user_id
-    print(request.data)
 
     req_data = {
         "title": request.data.get("title"),
