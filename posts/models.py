@@ -8,7 +8,7 @@ from PIL import Image
 
 from accounts.models import User
 
-RESIZE_THRESH = 0.8
+RESIZE_THRESH = 0.6
 
 
 def rename(filename, suffix=None):
