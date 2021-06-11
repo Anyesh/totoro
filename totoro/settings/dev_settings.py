@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -185,20 +186,25 @@ USE_L10N = True
 USE_TZ = True
 
 
+STATIC_ROOT = "static/"
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
+# BUCKET
+
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    STATIC_DIR,
-]
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = "media/"
 MEDIA_URL = "/media/"
+UPLOAD_ROOT = "uploads/"
 
 
+DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
+
+DOWNLOAD_URL = STATIC_URL + "media/downloads"
 CALLBACK_URL = "http://localhost:3000"
 
 
