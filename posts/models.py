@@ -1,8 +1,10 @@
 import re
-import sys
+import uuid
+from datetime import datetime
 from io import BytesIO
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files import File
+from django.core.files.base import ContentFile
 from django.db import models
 from PIL import Image
 
@@ -29,28 +31,31 @@ def upload_path(instance, filename):
         [
             "posts",
             str(instance.author.username),
-            fix_spcl_char(str(instance.created_at)),
+            fix_spcl_char(str(datetime.now())),
             rename(filename, suffix=f"{instance.height}x{instance.width}"),
         ]
     )
 
 
-class ImageCollection(models.Model):
-    width_field = models.IntegerField(default=0)
-    height_field = models.IntegerField(default=0)
-    url = models.ImageField(
-        upload_to=upload_path,
-        width_field="width_field",
-        height_field="height_field",
-        null=True,
-        blank=True,
-    )
+class ResizeImageMixin:
+    def resize(self, imageField, thumbnail, size: tuple):
+        im = Image.open(imageField)  # Catch original
+        source_image = im.convert("RGB")
+        source_image.thumbnail(size)  # Resize to size
+        output = BytesIO()
+        source_image.save(output, format="JPEG")  # Save resize image to bytes
+        output.seek(0)
 
-    def __str__(self):
-        return str(self.url)
+        content_file = ContentFile(
+            output.read()
+        )  # Read output and create ContentFile in memory
+        file = File(content_file)
+
+        random_name = f"{uuid.uuid4()}.jpeg"
+        thumbnail.save(random_name, file, save=False)
 
 
-class Posts(models.Model):
+class Posts(models.Model, ResizeImageMixin):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.TextField()
     width = models.IntegerField(default=0)
@@ -71,29 +76,13 @@ class Posts(models.Model):
 
     def save(self, *args, **kwargs):
 
-        self.thumbnail = self.compressImage(
-            self.image, self.height * RESIZE_THRESH, self.width * RESIZE_THRESH
+        self.resize(
+            self.image,
+            self.thumbnail,
+            (int(self.height * RESIZE_THRESH), int(self.width * RESIZE_THRESH)),
         )
 
         super(Posts, self).save(*args, **kwargs)
-
-    def compressImage(self, uploaded_image, height, width):
-        imageTemproary = Image.open(uploaded_image)
-        imageTemproary = imageTemproary.convert("RGB")
-        outputIoStream = BytesIO()
-        imageTemproary.resize((int(width), int(height)))
-        imageTemproary.save(outputIoStream, format="JPEG", quality=60)
-        outputIoStream.seek(0)
-        uploaded_image = InMemoryUploadedFile(
-            outputIoStream,
-            "ImageField",
-            uploaded_image.name,
-            "image/jpeg",
-            sys.getsizeof(outputIoStream),
-            None,
-        )
-
-        return uploaded_image
 
 
 class Comment(models.Model):
