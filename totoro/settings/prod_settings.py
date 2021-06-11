@@ -15,8 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
-
-# from google.oauth2 import service_account
+from google.oauth2 import service_account
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -31,7 +30,7 @@ STATIC_DIR = BASE_DIR / "static"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 # Application definition
@@ -207,9 +206,9 @@ MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_MEDIA_BUCKET_NAME)
 MEDIA_ROOT = "media/"
 
 
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-#     BASE_DIR / "credentials.json"
-# )
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    "https://storage.cloud.google.com/anyesh-creds/credentials.json"
+)
 
 
 UPLOAD_ROOT = "media/uploads/"

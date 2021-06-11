@@ -41,4 +41,3 @@ sqlite3
 
 settings/dev_settings.py
 staticfiles
-credentials.json
