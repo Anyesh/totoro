@@ -121,10 +121,10 @@ ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOWED_ORIGINS = [
-    "https://totoro.anishshrestha.info.np/",
-    "https://totoro-frontend.vercel.app/",
+    "https://totoro.anishshrestha.info.np",
+    "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
-    "https://storage.googleapis.com/",
+    "https://storage.googleapis.com",
 ]
 
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
@@ -139,10 +139,10 @@ CORS_ALLOW_METHODS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://totoro.anishshrestha.info.np/",
-    "https://totoro-frontend.vercel.app/",
+    "https://totoro.anishshrestha.info.np",
+    "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
-    "https://storage.googleapis.com/",
+    "https://storage.googleapis.com",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_CREDENTIALS = True
