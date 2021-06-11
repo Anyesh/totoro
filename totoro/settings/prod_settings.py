@@ -199,7 +199,7 @@ STATICFILES_STORAGE = "gcloud.GoogleCloudStaticFileStorage"
 
 GS_PROJECT_ID = "PROJECT ID FOUND IN GOOGLE CLOUD"
 GS_STATIC_BUCKET_NAME = "anyesh-data-bucket"
-GS_MEDIA_BUCKET_NAME = "anyesh-data-bucket"
+GS_MEDIA_BUCKET_NAME = "anyesh-media-bucket"
 
 STATIC_URL = "https://storage.googleapis.com/{}/".format(GS_STATIC_BUCKET_NAME)
 MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_MEDIA_BUCKET_NAME)
@@ -213,12 +213,11 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
 
 UPLOAD_ROOT = "media/uploads/"
 
-STATICFILES_DIRS = [
-    STATIC_DIR,
-]
 DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
 
 DOWNLOAD_URL = STATIC_URL + "media/downloads"
+
+
 CALLBACK_URL = "http://localhost:3000"
 
 
