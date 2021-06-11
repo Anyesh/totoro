@@ -13,3 +13,4 @@ djangorestframework-simplejwt
 gunicorn
 google-cloud-storage
 django-storages
+google
