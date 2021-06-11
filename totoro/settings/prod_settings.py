@@ -30,7 +30,7 @@ STATIC_DIR = BASE_DIR / "static"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 # Application definition
@@ -207,7 +207,7 @@ MEDIA_ROOT = "media/"
 
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    "https://storage.cloud.google.com/anyesh-creds/credentials.json"
+    BASE_DIR / "credentials.json"
 )
 
 
