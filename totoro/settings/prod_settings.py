@@ -29,7 +29,7 @@ STATIC_DIR = BASE_DIR / "static"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 try:
@@ -202,8 +202,8 @@ STATIC_ROOT = "static/"
 
 # BUCKET
 
-DEFAULT_FILE_STORAGE = "gcloud.GoogleCloudMediaFileStorage"
-STATICFILES_STORAGE = "gcloud.GoogleCloudStaticFileStorage"
+DEFAULT_FILE_STORAGE = "totoro.gcloud.GoogleCloudMediaFileStorage"
+STATICFILES_STORAGE = "totoro.gcloud.GoogleCloudStaticFileStorage"
 
 GS_PROJECT_ID = "PROJECT ID FOUND IN GOOGLE CLOUD"
 GS_STATIC_BUCKET_NAME = "anyesh-data-bucket"
