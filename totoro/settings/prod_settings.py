@@ -121,10 +121,10 @@ ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://totoro.anishshrestha.info.np/",
+    "https://totoro-frontend.vercel.app/",
+    "https://totoro-cezq5fxh3a-uc.a.run.app",
+    "https://storage.googleapis.com/",
 ]
 
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
@@ -139,8 +139,10 @@ CORS_ALLOW_METHODS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "locahost:8000",
-    "locahost:3000",
+    "https://totoro.anishshrestha.info.np/",
+    "https://totoro-frontend.vercel.app/",
+    "https://totoro-cezq5fxh3a-uc.a.run.app",
+    "https://storage.googleapis.com/",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_CREDENTIALS = True
@@ -221,7 +223,7 @@ DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
 DOWNLOAD_URL = STATIC_URL + "media/downloads"
 
 
-CALLBACK_URL = "http://localhost:3000"
+CALLBACK_URL = "https://totoro-frontend.vercel.app"
 
 
 REST_FRAMEWORK = {
