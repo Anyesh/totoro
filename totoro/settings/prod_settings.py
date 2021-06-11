@@ -15,8 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
-
-# from google.oauth2 import service_account
+from google.oauth2 import service_account
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -195,26 +194,31 @@ STATIC_ROOT = "static/"
 
 # BUCKET
 
-DEFAULT_FILE_STORAGE = "totoro.gcloud.GoogleCloudMediaFileStorage"
-STATICFILES_STORAGE = "totoro.gcloud.GoogleCloudStaticFileStorage"
+DEFAULT_FILE_STORAGE = "gcloud.GoogleCloudMediaFileStorage"
+STATICFILES_STORAGE = "gcloud.GoogleCloudStaticFileStorage"
 
 GS_PROJECT_ID = "PROJECT ID FOUND IN GOOGLE CLOUD"
 GS_STATIC_BUCKET_NAME = "anyesh-data-bucket"
-GS_MEDIA_BUCKET_NAME = "anyesh-media-bucket"
+GS_MEDIA_BUCKET_NAME = "anyesh-data-bucket"
 
 STATIC_URL = "https://storage.googleapis.com/{}/".format(GS_STATIC_BUCKET_NAME)
 MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_MEDIA_BUCKET_NAME)
 MEDIA_ROOT = "media/"
 
 
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    BASE_DIR / "credentials.json"
+)
+
+
 UPLOAD_ROOT = "media/uploads/"
 
-
+STATICFILES_DIRS = [
+    STATIC_DIR,
+]
 DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
 
 DOWNLOAD_URL = STATIC_URL + "media/downloads"
-
-
 CALLBACK_URL = "http://localhost:3000"
 
 
