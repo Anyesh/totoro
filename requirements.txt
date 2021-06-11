@@ -13,3 +13,4 @@ djangorestframework-simplejwt
 gunicorn
 google-cloud-storage==1.38.0
 django-storages==1.11.1
+gcloud
