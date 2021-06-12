@@ -32,6 +32,15 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = False
 
 
+try:
+    from google.oauth2 import service_account
+
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        BASE_DIR / "credentials.json"
+    )
+except Exception:
+    pass
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -50,6 +59,7 @@ INSTALLED_APPS = [
     # External
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     # Auth
     "dj_rest_auth",
@@ -82,9 +92,6 @@ if not DEBUG:
 
 AUTH_USER_MODEL = "accounts.User"
 
-# REST_AUTH_SERIALIZERS = {
-#     'USER_DETAILS_SERIALIZER': 'totoro.serializers.CustomUserModelSerializer'
-# }
 
 ROOT_URLCONF = "totoro.urls"
 
@@ -114,9 +121,10 @@ ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOWED_ORIGINS = [
+    "https://totoro.anishshrestha.info.np",
     "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
-    "https://totoro.anishshrestha.info.np",
+    "https://storage.googleapis.com",
 ]
 
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
@@ -131,8 +139,10 @@ CORS_ALLOW_METHODS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "locahost:8000",
-    "locahost:3000",
+    "https://totoro.anishshrestha.info.np",
+    "https://totoro-frontend.vercel.app",
+    "https://totoro-cezq5fxh3a-uc.a.run.app",
+    "https://storage.googleapis.com",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_CREDENTIALS = True
@@ -187,16 +197,30 @@ USE_L10N = True
 USE_TZ = True
 
 
+STATIC_ROOT = "static/"
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / STATIC_DIR]
+# BUCKET
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+DEFAULT_FILE_STORAGE = "totoro.gcloud.GoogleCloudMediaFileStorage"
+STATICFILES_STORAGE = "totoro.gcloud.GoogleCloudStaticFileStorage"
 
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
+GS_PROJECT_ID = "PROJECT ID FOUND IN GOOGLE CLOUD"
+GS_STATIC_BUCKET_NAME = "anyesh-data-bucket"
+GS_MEDIA_BUCKET_NAME = "anyesh-media-bucket"
+
+STATIC_URL = "https://storage.googleapis.com/{}/".format(GS_STATIC_BUCKET_NAME)
+MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_MEDIA_BUCKET_NAME)
+MEDIA_ROOT = "media/"
+
+
+UPLOAD_ROOT = "media/uploads/"
+
+DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
+
+DOWNLOAD_URL = STATIC_URL + "media/downloads"
 
 
 CALLBACK_URL = "https://totoro-frontend.vercel.app"
@@ -206,6 +230,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.UserRateThrottle",
@@ -219,14 +244,15 @@ REST_FRAMEWORK = {
 }
 
 REST_AUTH_SERIALIZERS = {
-    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer"
+    "JWT_TOKEN_CLAIMS_SERIALIZER": "accounts.api.serializers.TotoroTokenObtainPairSerializer",
+    # "USER_DETAILS_SERIALIZER": "accounts.api.serializers.TotoroUserModelSerializer",
 }
 
 
 # JWT Settings
 SIMPLE_JWT = {
     "ALGORITHM": "HS256",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,

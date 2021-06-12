@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializer
 from accounts.models import User
-from posts.models import RESIZE_THRESH, Comment, Posts
+from posts.models import RESIZE_THRESH, Comment, Post
 
 
 class PostsSerializer(serializers.ModelSerializer):
@@ -35,7 +35,7 @@ class PostsSerializer(serializers.ModelSerializer):
             return dict(users=people, user_ids=obj.likes.get("users"))
 
     class Meta:
-        model = Posts
+        model = Post
         fields = [
             "id",
             "title",

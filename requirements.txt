@@ -11,3 +11,5 @@ dj-rest-auth==2.1.5
 PyJWT==2.1.0
 djangorestframework-simplejwt
 gunicorn
+google-cloud-storage==1.38.0
+django-storages==1.11.1

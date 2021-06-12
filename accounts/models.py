@@ -9,6 +9,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from totoro.utils import get_client_ip
+
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -93,6 +95,8 @@ class Profile(models.Model):
     updated = models.DateTimeField(
         auto_now=True,
     )
+    current_ip = models.CharField(max_length=20, blank=True, null=True)
+    ip_list = models.JSONField(default=list, blank=True, null=True)
 
     # def save(self):
     #     if not self.id:
@@ -106,5 +110,6 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        ip = get_client_ip()
+        Profile.objects.create(user=instance, current_ip=ip)
     instance.profile.save()
