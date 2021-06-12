@@ -55,7 +55,7 @@ class ResizeImageMixin:
         thumbnail.save(random_name, file, save=False)
 
 
-class Posts(models.Model, ResizeImageMixin):
+class Post(models.Model, ResizeImageMixin):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.TextField()
     width = models.IntegerField(default=0)
@@ -82,13 +82,12 @@ class Posts(models.Model, ResizeImageMixin):
             (int(self.height * RESIZE_THRESH), int(self.width * RESIZE_THRESH)),
         )
 
-        super(Posts, self).save(*args, **kwargs)
+        super(Post, self).save(*args, **kwargs)
 
 
 class Comment(models.Model):
-    # comment_parent if equal to pk then comment is top level comment
-    post_id = models.CharField(max_length=16)
-    user_id = models.CharField(max_length=16)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment_text = models.TextField(blank=False)
     comment_likes = models.JSONField(default=dict)
     comment_parent = models.CharField(max_length=16)
@@ -96,4 +95,4 @@ class Comment(models.Model):
     updated = models.FloatField()
 
     def __str__(self):
-        return "Comment #" + str(self.pk) + " __by " + str(self.user_id)
+        return "Comment #" + str(self.pk) + " __by " + str(self.user.user_id)

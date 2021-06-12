@@ -15,7 +15,7 @@ from helpers.api_error_response import error_response
 from helpers.error_messages import UNAUTHORIZED
 from notifications.models import Notification
 from posts.api.serializers import PostsSerializer
-from posts.models import Comment, Posts
+from posts.models import Comment, Post
 from totoro.utils import get_response
 
 
@@ -26,7 +26,7 @@ def userPosts(request, pk):
 
 def __userPosts(pk):
     user_id = pk
-    data = Posts.objects.filter(user_id=user_id)
+    data = Post.objects.filter(user_id=user_id)
     postsSerializer = PostsSerializer(data, many=True)
     if postsSerializer.data:
         return Response(data=postsSerializer.data, status=status.HTTP_200_OK)
@@ -59,14 +59,14 @@ def get_posts(request):
         friends.append(user_id)
     else:
         friends = [user_id]
-    data = Posts.objects.filter(author_id__in=friends).order_by("pk").values()
+    data = Post.objects.filter(author_id__in=friends).order_by("pk").values()
     posts_final = []
     for post in data:
         author = UserSerializer(User.objects.get(pk=post["author_id"])).data
         posts_final.append(
             {
                 **PostsSerializer(
-                    Posts.objects.get(pk=post["id"]), context={"request": request}
+                    Post.objects.get(pk=post["id"]), context={"request": request}
                 ).data,
                 "author": author,
             }
@@ -74,7 +74,7 @@ def get_posts(request):
 
     return JsonResponse(
         data=get_response(
-            message="Posts retrieved succesfully!",
+            message="Post retrieved succesfully!",
             status_code=200,
             status=True,
             result={"data": posts_final},
@@ -124,22 +124,22 @@ def new_post(request):
 @api_view(["GET"])
 def get_post(request, pk):
     try:
-        data = Posts.objects.get(pk=pk)
+        data = Post.objects.get(pk=pk)
 
         return JsonResponse(
             data=get_response(
-                message="Posts retrieved succesfully!",
+                message="Post retrieved succesfully!",
                 status_code=200,
                 status=True,
                 result={
                     "data": PostsSerializer(
-                        Posts.objects.get(pk=data.id), context={"request": request}
+                        Post.objects.get(pk=data.id), context={"request": request}
                     ).data
                 },
             ),
             status=status.HTTP_200_OK,
         )
-    except Posts.DoesNotExist:
+    except Post.DoesNotExist:
         return JsonResponse(
             data=get_response(
                 message="Post with given id not found!",
@@ -158,7 +158,7 @@ def likePost(request, post_key):
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
-    post = Posts.objects.get(pk=post_key)
+    post = Post.objects.get(pk=post_key)
     if post.likes:
         if user_id in post.likes["users"]:
             post.likes["users"].remove(user_id)
@@ -191,7 +191,7 @@ def editPost(request, post_key):
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
-    post = Posts.objects.get(pk=post_key)
+    post = Post.objects.get(pk=post_key)
     if post.user == user_id:
         post.post_text = request.data["post_text"]
         post.post_image = request.data["post_image"]
@@ -211,12 +211,12 @@ def deletePost(request, post_key):
     # If user_id type is Response that means we have errored
     if type(user_id) is Response:
         return user_id
-    post = Posts.objects.get(pk=post_key)
-    if post.user_id == user_id:
-        post.delete()
-        Comment.objects.filter(post_id=post.id).delete()
-        return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)
-    else:
+    post = Post.objects.get(pk=post_key)
+    if post.user_id != user_id:
         return Response(
             error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )
+
+    post.delete()
+    Comment.objects.filter(post_id=post.id).delete()
+    return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)

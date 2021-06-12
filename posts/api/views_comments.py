@@ -12,7 +12,7 @@ from friends.models import Friend
 from helpers.api_error_response import error_response
 from helpers.error_messages import INVALID_REQUEST
 from notifications.models import Notification
-from posts.models import Comment, Posts
+from posts.models import Comment, Post
 
 from .serializers import CommentSerializer
 
@@ -60,14 +60,12 @@ def postNewComment(request, post_id):
     time_stamp = datetime.now().timestamp()
 
     # Filtering
-    if post.user_id != user:
-        # post author themselves are not commenting on their post
-        if not isFriends(post.user_id, user):
-            # post author and user trying to comment are not friends
-            # if they are friends then we let the commentator post a comment
-            return Response(
-                error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
-            )
+    if post.user_id != user and not isFriends(post.user_id, user):
+        # post author and user trying to comment are not friends
+        # if they are friends then we let the commentator post a comment
+        return Response(
+            error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
+        )
 
     commentSerializer = CommentSerializer(
         data={
@@ -186,14 +184,14 @@ def isFriends(user_a, user_b):
 def getAuthor(post):
     # getAuthor returns a user model
     try:
-        post_author_id = Posts.objects.get(id=post).user_id
+        post_author_id = Post.objects.get(id=post).user_id
         try:
             return User.objects.get(user_id=post_author_id)
         except User.DoesNotExist:
             return Response(
                 error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
             )
-    except Posts.DoesNotExist:
+    except Post.DoesNotExist:
         return Response(
             error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )
@@ -201,8 +199,8 @@ def getAuthor(post):
 
 def getPost(post):
     try:
-        return Posts.objects.get(id=post)
-    except Posts.DoesNotExist:
+        return Post.objects.get(id=post)
+    except Post.DoesNotExist:
         return Response(
             error_response(INVALID_REQUEST), status=status.HTTP_400_BAD_REQUEST
         )
