@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.api.serializers import ProfileSerializer, UserSerializer
 from accounts.models import Profile, User
@@ -111,7 +112,9 @@ class LogoutView(APIView):
         django_logout(request)
         response.delete_cookie(settings.JWT_AUTH_COOKIE)
         response.delete_cookie(settings.JWT_AUTH_REFRESH_COOKIE)
-
+        Refresh_token = request.COOKIES.get(settings.JWT_AUTH_REFRESH_COOKIE)
+        token = RefreshToken(Refresh_token)
+        token.blacklist()
         return response
 
 
@@ -173,14 +176,17 @@ def genToken():
 
 
 def remove_prefix(text, prefix):
-    if type(text) is not InMemoryUploadedFile:
-        if text.startswith(prefix):
-            return text[len(prefix) :]
+    if type(text) is not InMemoryUploadedFile and text.startswith(prefix):
+        return text[len(prefix) :]
     return text
 
 
 class Ping(APIView):
     def get(self, request):
+
         return JsonResponse(
-            {"details": f"logged in as {request.user.username}", "status_code": 200}
+            {
+                "details": f"logged in as {request.user.username}",
+                "status_code": 200,
+            }
         )
