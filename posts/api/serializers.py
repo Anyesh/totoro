@@ -5,10 +5,25 @@ from accounts.models import User
 from posts.models import RESIZE_THRESH, Comment, Post
 
 
-class PostsSerializer(serializers.ModelSerializer):
+class PostCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["id", "title", "image", "author"]
+
+
+class PostSerializer(serializers.ModelSerializer):
 
     likes = serializers.SerializerMethodField()
     src = serializers.SerializerMethodField()
+    _author = serializers.SerializerMethodField()
+
+    def get__author(self, obj):
+
+        return {
+            "user_id": obj.author.user_id,
+            "username": obj.author.username,
+            "email": obj.author.email,
+        }
 
     def get_src(self, obj):
         request = self.context.get("request")
@@ -39,26 +54,13 @@ class PostsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
-            "image",
+            "_author",
+            "src",
             "categories",
-            "title",
             "likes",
             "created_at",
             "updated_at",
-            "height",
-            "width",
-            "author",
-            "src",
         ]
-        extra_kwargs = {
-            "created_at": {"required": False},
-            "height": {"required": False},
-            "width": {"required": False},
-            "categories": {"required": False},
-            "src": {"required": False},
-            "updated_at": {"required": False},
-            "likes": {"required": False},
-        }
 
 
 class CommentSerializer(serializers.ModelSerializer):
