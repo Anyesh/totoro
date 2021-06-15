@@ -39,3 +39,8 @@ urlpatterns: List[URLResolver] = [
     *admin_url,
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),  # type: ignore
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path("dev/auth/", include("dj_rest_auth.urls")),
+    ]

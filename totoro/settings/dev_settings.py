@@ -212,17 +212,19 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.UserRateThrottle",
-        # 'rest_framework.throttling.AnonRateThrottle',
+        "rest_framework.throttling.AnonRateThrottle",
     ),
     "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
     "DEFAULT_THROTTLE_RATES": {
         "loginAttempts": "6/hr",
         "user": "1000/min",
+        "anon": "1000/min",
     },
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 20,
 }
 
 REST_AUTH_SERIALIZERS = {
