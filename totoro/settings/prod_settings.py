@@ -241,6 +241,8 @@ REST_FRAMEWORK = {
         "loginAttempts": "6/hr",
         "user": "1000/min",
     },
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 20,
 }
 
 REST_AUTH_SERIALIZERS = {
