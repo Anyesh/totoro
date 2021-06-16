@@ -36,6 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
             "user_id": obj.author.user_id,
             "username": obj.author.username,
             "email": obj.author.email,
+            "avatar": obj.author.profile.avatar,
         }
 
     def get_src(self, obj):
