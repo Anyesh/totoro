@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     # Internal
     "accounts",
-    "posts",
+    "posts.apps.PostsConfig",
     "friends",
     "notifications",
     # External
@@ -272,3 +272,13 @@ REST_USE_JWT = True  # use JSON Web Tokens
 JWT_AUTH_COOKIE = "totoro-access-token"
 JWT_AUTH_REFRESH_COOKIE = "totoro-refresh-token"
 JWT_AUTH_SAMESITE = "Lax"
+
+
+# CELERY
+
+BROKER_URL = "redis://localhost:9999"
+CELERY_RESULT_BACKEND = "redis://localhost:9999"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Kathmandu"
