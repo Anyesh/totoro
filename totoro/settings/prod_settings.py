@@ -155,9 +155,9 @@ DATABASES = {
         # "ENGINE": "django.db.backends.sqlite3",
         # "NAME": BASE_DIR / "db.sqlite3"
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USERNAME"),
-        "PASSWORD": config("DB_PASSWORD"),
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
         "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT"),
     }
@@ -292,8 +292,8 @@ JWT_AUTH_REFRESH_COOKIE = "totoro-refresh-token"
 JWT_AUTH_SAMESITE = "Lax"
 
 # CELERY
-BROKER_URL = "redis://localhost:6379"
-CELERY_RESULT_BACKEND = "redis://localhost:6379"
+BROKER_URL = config("REDIS_URI")
+CELERY_RESULT_BACKEND = config("REDIS_URI")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

@@ -34,3 +34,12 @@ yarn-error.log*
 .vscode
 .vscode/**
 *.log
+*.bak
+*.dat
+*.dir
+*.rdb
+
+settings/dev_settings.py
+staticfiles
+
+*.sqlite3
