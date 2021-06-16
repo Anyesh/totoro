@@ -57,4 +57,4 @@ services:
 
 volumes:
     dbdata:
-    redis: {}
+    redis:
