@@ -3,13 +3,7 @@ from dj_rest_auth.jwt_auth import get_refresh_view
 from django.urls import path
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from accounts.api.views import (
-    LogoutView,
-    Ping,
-    edit_profile,
-    get_user_info,
-    search_users,
-)
+from accounts.api.views import LogoutView, Ping, edit_profile, search_users
 
 urlpatterns = [
     # path("api/user/get-csrf/", get_csrf),
@@ -19,5 +13,4 @@ urlpatterns = [
     path("auth/token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
     path("user/edit/", edit_profile),
     path("user/search/<query>/", search_users),
-    path("user/u/<username>/", get_user_info),
 ]
