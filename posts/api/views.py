@@ -127,9 +127,7 @@ class Posts(APIView):
             friends.append(user_id)
         else:
             friends = [user_id]
-        return Post.objects.filter(author_id__in=friends, is_published=True).order_by(
-            "-created_at"
-        )
+        return Post.objects.filter(is_published=True).order_by("-created_at")
 
     def get(self, request, post_id=None):
 
@@ -192,6 +190,9 @@ def AddNewPost(request):
     )
     if serializer.is_valid():
         serializer.save()
+
+        # Handle Moderation
+        # Handle blurhash creation
         return JsonResponse(
             data=get_response(
                 message="Post created succesfully.",
