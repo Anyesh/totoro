@@ -14,34 +14,10 @@ from friends.models import Friend
 from helpers.api_error_response import error_response
 from helpers.error_messages import UNAUTHORIZED
 from notifications.models import Notification
-from posts.api.serializers import PostCreateSerializer, PostSerializer
-from posts.models import Comment, Post
+from posts.models import Post
 from totoro.utils import get_response
 
-
-@api_view(["GET"])
-def UserSpecificPosts(request, user_id):
-    return __userPosts(user_id)
-
-
-def __userPosts(user_id):
-    data = Post.objects.filter(user_id=user_id)
-    postsSerializer = PostSerializer(data, many=True)
-    if postsSerializer.data:
-        return Response(data=postsSerializer.data, status=status.HTTP_200_OK)
-    else:
-        return Response(
-            error_response("No posts found!"), status=status.HTTP_404_NOT_FOUND
-        )
-
-
-@api_view(["GET"])
-def LoggedInUserPosts(request):
-    user_id = request.user.user_id
-    # If user_id type is Response that means we have errored
-    if type(user_id) is Response:
-        return user_id
-    return __userPosts(user_id)
+from .serializers import PostCreateSerializer, PostSerializer
 
 
 class PostsPagination(PageNumberPagination):
@@ -52,17 +28,17 @@ class PostsPagination(PageNumberPagination):
         if not data:
             return JsonResponse(
                 data=get_response(
-                    message="Post could not be retrieved!",
-                    status_code=404,
-                    status=False,
+                    message="No post(s) found!",
+                    status_code=200,
+                    status=True,
                     result={"data": data},
                 ),
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_200_OK,
             )
 
         return JsonResponse(
             data=get_response(
-                message="Post retrieved succesfully!",
+                message="Posts retrieved succesfully!",
                 status_code=200,
                 status=True,
                 result={
@@ -74,6 +50,43 @@ class PostsPagination(PageNumberPagination):
             ),
             status=status.HTTP_200_OK,
         )
+
+
+class UserPosts(APIView):
+
+    serializer_class = PostSerializer
+    pagination_class = PostsPagination
+
+    @property
+    def paginator(self):
+        if not hasattr(self, "_paginator"):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+    def get_queryset(self, user_id):
+        return Post.objects.filter(author__user_id=user_id).order_by("-created_at")
+
+    def get(self, request, user_id=None):
+        if not user_id:
+            user_id = request.user.user_id
+        page = self.paginate_queryset(self.get_queryset(user_id))
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
 
 
 class Posts(APIView):
@@ -100,7 +113,7 @@ class Posts(APIView):
 
     def get_queryset(self, request, post_id):
         if post_id:
-            return Post.objects.filter(pk=post_id)
+            return Post.objects.filter(pk=post_id).order_by("-created_at")
 
         user_id = request.user.user_id
         friends = []
@@ -114,7 +127,9 @@ class Posts(APIView):
             friends.append(user_id)
         else:
             friends = [user_id]
-        return Post.objects.filter(author_id__in=friends).order_by("pk")
+        return Post.objects.filter(author_id__in=friends, is_published=True).order_by(
+            "-created_at"
+        )
 
     def get(self, request, post_id=None):
 
@@ -124,6 +139,40 @@ class Posts(APIView):
                 page, many=True, context={"request": request}
             )
             return self.get_paginated_response(serializer.data)
+
+    def delete(self, request, post_id):
+        try:
+            post = Post.objects.get(pk=post_id)
+            if post.author.user_id != request.user.user_id:
+                return JsonResponse(
+                    data=get_response(
+                        message="Unauthorized action!",
+                        result={},
+                        status=False,
+                        status_code=401,
+                    ),
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+            post.delete()
+            return JsonResponse(
+                data=get_response(
+                    message="Post deleted succesfully!",
+                    result={},
+                    status=True,
+                    status_code=200,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return JsonResponse(
+                data=get_response(
+                    message="Post not found!",
+                    result={},
+                    status=False,
+                    status_code=404,
+                ),
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 @api_view(["POST"])
@@ -193,9 +242,6 @@ def likePost(request, post_key):
     return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)
 
 
-# Edit a post, Auth: REQUIRED
-# @required in request: post_text, post_image
-# -----------------------------------------------
 def editPost(request, post_key):
     user_id = request.user
     # If user_id type is Response that means we have errored
@@ -212,21 +258,3 @@ def editPost(request, post_key):
         return Response(
             error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
         )
-
-
-# delete a post, Auth: REQUIRED
-# -----------------------------------------------
-def deletePost(request, post_key):
-    user_id = request.user
-    # If user_id type is Response that means we have errored
-    if type(user_id) is Response:
-        return user_id
-    post = Post.objects.get(pk=post_key)
-    if post.user_id != user_id:
-        return Response(
-            error_response(UNAUTHORIZED), status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    post.delete()
-    Comment.objects.filter(post_id=post.id).delete()
-    return Response(json.loads('{"action":"success"}'), status=status.HTTP_200_OK)

@@ -10,6 +10,19 @@ class PostCreateSerializer(serializers.ModelSerializer):
         model = Post
         fields = ["id", "title", "image", "author"]
 
+    # def update(self, validated_data):
+    #     return Post.objects.update(**validated_data)
+
+    # def create(self, validated_data):
+    #     instance = Post.objects.create(**validated_data)
+    #     instance.is_published = True
+    #     instance.save()
+    #     # if self.context.get('tags'):
+    #     #     for user in self.context.get('tags'):
+    #     #         instance.tags.add(user)
+    #     #         instance.save()
+    #     return instance
+
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -38,6 +51,11 @@ class PostSerializer(serializers.ModelSerializer):
                 "height": int(obj.height * RESIZE_THRESH),
                 "width": int(obj.width * RESIZE_THRESH),
             },
+            "placeholder": {
+                "url": obj.placeholder,
+                "height": obj.height,
+                "width": obj.width,
+            },
         }
 
     def get_likes(self, obj):
@@ -58,6 +76,7 @@ class PostSerializer(serializers.ModelSerializer):
             "src",
             "categories",
             "likes",
+            "is_published",
             "created_at",
             "updated_at",
         ]

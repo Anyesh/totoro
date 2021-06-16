@@ -1,8 +1,11 @@
+import base64
 import re
 import uuid
 from datetime import datetime
 from io import BytesIO
 
+import blurhash
+import numpy as np
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
@@ -38,6 +41,14 @@ def upload_path(instance, filename):
 
 
 class ResizeImageMixin:
+    def create_placeholder(self, image):
+        im = np.asarray(Image.open(image).convert("RGB"))
+        hash = blurhash.encode(im, components_x=4, components_y=3)
+        img = Image.fromarray(np.asarray(blurhash.decode(hash, 12, 12)).astype("uint8"))
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+
     def resize(self, imageField, thumbnail, size: tuple):
         im = Image.open(imageField)  # Catch original
         source_image = im.convert("RGB")
@@ -65,8 +76,19 @@ class Post(models.Model, ResizeImageMixin):
         height_field="height",
         upload_to=upload_path,
     )
-    thumbnail = models.ImageField(blank=True, null=True, upload_to=upload_path)
+    thumbnail = models.ImageField(blank=True, null=False, upload_to=upload_path)
+    placeholder = models.TextField(
+        null=True,
+        blank=True,
+        default="data:image/jpeg;base64,/9j/\
+            2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/\
+            2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/\
+            wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/\
+            EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5x\
+            drLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==",
+    )
     likes = models.JSONField(default=dict, blank=True, null=True)
+    is_published = models.BooleanField(default=False, blank=True, null=True)
     categories = models.JSONField(default=list, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -75,12 +97,15 @@ class Post(models.Model, ResizeImageMixin):
         return "Post " + str(self.pk) + ", by " + str(self.author.username)
 
     def save(self, *args, **kwargs):
+        if not self.pk:
 
-        self.resize(
-            self.image,
-            self.thumbnail,
-            (int(self.height * RESIZE_THRESH), int(self.width * RESIZE_THRESH)),
-        )
+            self.resize(
+                self.image,
+                self.thumbnail,
+                (int(self.height * RESIZE_THRESH), int(self.width * RESIZE_THRESH)),
+            )
+
+            self.is_published = True
 
         super(Post, self).save(*args, **kwargs)
 
