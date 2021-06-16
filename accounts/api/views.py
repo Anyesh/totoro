@@ -72,7 +72,8 @@ def get_user_info(request, username):
         #     except Friend.DoesNotExist:
         #         isFriend = False
 
-        # # isFriendReqSent: Check if the requesting user has already sent a friend req to wanted user
+        # # isFriendReqSent: Check if the requesting user has already
+        # sent a friend req to wanted user
         # # we only check if they are not already friends
         # isFriendReqSent = None
         # if isFriend is False:
