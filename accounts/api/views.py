@@ -13,91 +13,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.api.serializers import ProfileSerializer, UserSerializer
-from accounts.models import Profile, User
+from accounts.models import User
 from helpers.api_error_response import error_response
 from helpers.error_messages import INVALID_REQUEST
 from totoro.utils import get_response
-
-
-@api_view(["GET"])
-def get_user_info(request, username):
-    requesting_user = request.user
-    if type(requesting_user) is Response:
-        return requesting_user
-
-    try:
-        data = Profile.objects.get(user__username=username)
-        # user
-        userSerializer = ProfileSerializer(data)
-        # comments
-        # comments = CommentSerializer(
-        #     Comment.objects.filter(user_id=wanted_user).order_by("-pk")[:3].values(),
-        #     many=True,
-        # ).data
-        # # posts
-        # posts = Posts.objects.filter(user_id=wanted_user).order_by("pk").values()
-        # posts_final = []
-        # for post in posts:
-        #     post_by = UserSerializer(User.objects.get(pk=post["user_id"])).data
-        #     posts_final.append(
-        #         {
-        #             **PostsSerializer(Posts.objects.get(pk=post["id"])).data,
-        #             "user": post_by,
-        #         }
-        #     )
-        # # friends
-        # try:
-        #     data = Friend.objects.filter(Q(user_a=wanted_user) | Q(user_b=wanted_user))
-        #     friends = [
-        #         entry.user_a if entry.user_a is not wanted_user else entry.user_b
-        #         for entry in data
-        #     ]
-        #     if friends:
-        #         users = User.objects.filter(id__in=friends)
-        #         users_dict = [UserSerializer(user).data for user in users]
-        #         friends = users_dict
-        # except Friend.DoesNotExist:
-        #     friends = []
-
-        # # isFriend: Check if user requesting this info is friends with the user
-        # # we only check if wanted user and requesting user are different
-        # isFriend = None
-        # if requesting_user is not wanted_user:
-        #     try:
-        #         Friend.objects.get(
-        #             Q(user_a=requesting_user) & Q(user_b=wanted_user)
-        #             | Q(user_a=wanted_user) & Q(user_b=requesting_user)
-        #         )
-        #         isFriend = True
-        #     except Friend.DoesNotExist:
-        #         isFriend = False
-
-        # # isFriendReqSent: Check if the requesting user has already
-        # sent a friend req to wanted user
-        # # we only check if they are not already friends
-        # isFriendReqSent = None
-        # if isFriend is False:
-        #     try:
-        #         FriendRequest.objects.get(
-        #             Q(from_user=requesting_user) & Q(to_user=wanted_user)
-        #         )
-        #         isFriendReqSent = True
-        #     except FriendRequest.DoesNotExist:
-        #         isFriendReqSent = False
-
-        return Response(
-            {
-                "user_info": userSerializer.data,
-                # "friends": friends,
-                # "posts": posts_final,
-                # "comments": comments,
-                # "isFriend": isFriend,
-                # "isFriendReqSent": isFriendReqSent,
-            },
-            status=status.HTTP_200_OK,
-        )
-    except User.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class LogoutView(APIView):
@@ -147,10 +66,6 @@ def edit_profile(request):
 
 @api_view(["GET"])
 def search_users(request, query):
-    user = request.user
-    if type(user) is Response:
-        return user
-
     query = query.replace("+", " ")
     # might not be the best solution
     query = User.objects.filter(
@@ -185,9 +100,14 @@ def remove_prefix(text, prefix):
 class Ping(APIView):
     def get(self, request):
 
+        serializer = ProfileSerializer(request.user.profile)
+
         return JsonResponse(
-            {
-                "details": f"logged in as {request.user.username}",
-                "status_code": 200,
-            }
+            data=get_response(
+                message="Ping was a success!",
+                result={"data": serializer.data},
+                status=True,
+                status_code=200,
+            ),
+            status=status.HTTP_200_OK,
         )
