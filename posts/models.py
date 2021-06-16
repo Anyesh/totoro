@@ -1,11 +1,8 @@
-import base64
 import re
 import uuid
 from datetime import datetime
 from io import BytesIO
 
-import blurhash
-import numpy as np
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
@@ -41,14 +38,6 @@ def upload_path(instance, filename):
 
 
 class ResizeImageMixin:
-    def create_placeholder(self, image):
-        im = np.asarray(Image.open(image).convert("RGB"))
-        hash = blurhash.encode(im, components_x=4, components_y=3)
-        img = Image.fromarray(np.asarray(blurhash.decode(hash, 12, 12)).astype("uint8"))
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
-
     def resize(self, imageField, thumbnail, size: tuple):
         im = Image.open(imageField)  # Catch original
         source_image = im.convert("RGB")
@@ -68,7 +57,7 @@ class ResizeImageMixin:
 
 class Post(models.Model, ResizeImageMixin):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.TextField()
+    title = models.CharField(max_length=120)
     width = models.IntegerField(default=0)
     height = models.IntegerField(default=0)
     image = models.ImageField(
