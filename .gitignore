@@ -37,7 +37,10 @@ yarn-error.log*
 *.log
 sqlite3
 
-
+*.bak
+*.dat
+*.dir
+*.rdb
 
 settings/dev_settings.py
 staticfiles
