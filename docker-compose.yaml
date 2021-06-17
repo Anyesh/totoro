@@ -10,13 +10,14 @@ services:
             - .env
         ports:
             - "5432:5432"
+
     totoro:
         build: .
         image: totoro
         container_name: totoro
         hostname: totoro
         ports:
-            - '80:8000'
+            - '8000:8000'
         env_file:
             - .env
         depends_on:
@@ -34,7 +35,6 @@ services:
         image: totoro
         hostname: celery_worker
         restart: on-failure
-
 
     celery_beat:
         command: "celery -A totoro beat -l info"
