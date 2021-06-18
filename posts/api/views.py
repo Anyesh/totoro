@@ -134,8 +134,8 @@ class Posts(APIView):
             friends = [user_id]
         return Post.objects.filter(is_published=True).order_by("-created_at")
 
-    @method_decorator(cache_page(60 * 60 * 2))
-    @method_decorator(vary_on_headers("Authorization"))
+    # @method_decorator(cache_page(60 * 60 * 2))
+    # @method_decorator(vary_on_headers("Authorization"))
     def get(self, request, post_id=None):
 
         page = self.paginate_queryset(self.get_queryset(request, post_id))
