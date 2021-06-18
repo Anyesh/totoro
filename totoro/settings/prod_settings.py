@@ -125,6 +125,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
     "https://storage.googleapis.com",
+    "http://api.anyesh.me",
+    "https://api.anyesh.me",
 ]
 
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
@@ -143,6 +145,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
     "https://storage.googleapis.com",
+    "http://api.anyesh.me",
+    "https://api.anyesh.me",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_CREDENTIALS = True
@@ -298,3 +302,20 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Asia/Kathmandu"
+
+
+# API CACHE
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+CACHE_TTL = 60 * 60 * 1  # 1 hour
