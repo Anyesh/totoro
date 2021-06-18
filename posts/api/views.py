@@ -4,6 +4,9 @@ from datetime import datetime
 import pytz
 from django.db.models import Q
 from django.http.response import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
@@ -78,6 +81,8 @@ class UserPosts(APIView):
     def get_queryset(self, user_id):
         return Post.objects.filter(author__user_id=user_id).order_by("-created_at")
 
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_headers("Authorization"))
     def get(self, request, user_id=None):
         if not user_id:
             user_id = request.user.user_id
@@ -129,6 +134,8 @@ class Posts(APIView):
             friends = [user_id]
         return Post.objects.filter(is_published=True).order_by("-created_at")
 
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_headers("Authorization"))
     def get(self, request, post_id=None):
 
         page = self.paginate_queryset(self.get_queryset(request, post_id))
