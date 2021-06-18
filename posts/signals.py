@@ -7,6 +7,5 @@ from .tasks import create_blur_placeholder
 
 @receiver(post_save, sender=Post)
 def run_placeholder_creation(sender, instance, created, **kwargs):
-    print("asdads")
     if created:
         create_blur_placeholder.delay(instance.id)
