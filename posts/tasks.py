@@ -15,7 +15,7 @@ from .models import Post
     autoretry_for=(IntegrityError,),
     retry_kwargs={"max_retries": 3, "countdown": 15},
 )
-def create_blur_placeholder(pk):
+def create_blur_placeholder(self, pk):
     try:
         post = Post.objects.filter(pk=pk)
         im = np.asarray(Image.open(post.first().image).convert("RGB"))
