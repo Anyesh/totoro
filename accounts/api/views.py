@@ -6,6 +6,9 @@ from django.contrib.auth import logout as django_logout
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -98,6 +101,8 @@ def remove_prefix(text, prefix):
 
 
 class Ping(APIView):
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    @method_decorator(vary_on_headers("Authorization"))
     def get(self, request):
 
         serializer = ProfileSerializer(request.user.profile)
