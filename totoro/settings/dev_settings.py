@@ -297,39 +297,3 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 CACHE_TTL = 60 * 60 * 1  # 1 hour
-
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
-    "formatters": {
-        "verbose": {"format": "[contactor] %(levelname)s %(asctime)s %(message)s"},
-    },
-    "handlers": {
-        # Send all messages to console
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-        },
-        # Warning messages are sent to admin emails
-        "mail_admins": {
-            "level": "WARNING",
-            "filters": ["require_debug_false"],
-            "class": "django.utils.log.AdminEmailHandler",
-        },
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "totoro.log",
-        },
-    },
-    "loggers": {
-        # This is the "catch all" logger
-        "": {
-            "handlers": ["console", "mail_admins", "file"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-    },
-}
