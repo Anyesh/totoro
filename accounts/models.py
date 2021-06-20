@@ -10,6 +10,7 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.dispatch import receiver
 
+# from django.db.models.signals import post_save
 from totoro.utils import get_client_ip
 
 
@@ -98,11 +99,6 @@ class Profile(models.Model):
     current_ip = models.CharField(max_length=20, blank=True, null=True)
     ip_list = models.JSONField(default=list, blank=True, null=True)
 
-    # def save(self):
-    #     if not self.id:
-    #         self.password = generate_hash(self.password)
-    #         super().save()
-
     def __str__(self):
         return "user: " + self.user.username
 
@@ -110,13 +106,13 @@ class Profile(models.Model):
 # @receiver(post_save, sender=User)
 # def create_or_update_user_profile(sender, instance, created, **kwargs):
 #     if created:
-#         ip = get_client_ip()
-#         Profile.objects.create(user=instance, current_ip=ip)
+
+#         Profile.objects.update_or_create(user=instance)
 #     instance.profile.save()
 
 
 @receiver(user_signed_up)
-def social_login_fname_lname_profilepic(sociallogin, user, **kwargs):
+def create_or_update_user_profile(sociallogin, user, **kwargs):
     preferred_avatar_size_pixels = 256
 
     picture_url = "http://www.gravatar.com/avatar/{0}?s={1}".format(
