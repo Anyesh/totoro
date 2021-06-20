@@ -10,18 +10,19 @@ class PostCreateSerializer(serializers.ModelSerializer):
         model = Post
         fields = ["id", "title", "image", "author"]
 
-    # def update(self, validated_data):
-    #     return Post.objects.update(**validated_data)
+    def update(self, validated_data):
+        return Post.objects.update(**validated_data)
 
-    # def create(self, validated_data):
-    #     instance = Post.objects.create(**validated_data)
-    #     instance.is_published = True
-    #     instance.save()
-    #     # if self.context.get('tags'):
-    #     #     for user in self.context.get('tags'):
-    #     #         instance.tags.add(user)
-    #     #         instance.save()
-    #     return instance
+    def create(self, validated_data):
+        instance = Post.objects.create(**validated_data)
+        instance.origin = UserSerializer(instance.author).data
+        instance.is_published = True
+        instance.save()
+        # if self.context.get('tags'):
+        #     for user in self.context.get('tags'):
+        #         instance.tags.add(user)
+        #         instance.save()
+        return instance
 
 
 class PostSerializer(serializers.ModelSerializer):
