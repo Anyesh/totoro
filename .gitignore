@@ -31,12 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 
 *.lock
-
 .vscode
 .vscode/**
 *.log
-sqlite3
-
 *.bak
 *.dat
 *.dir
