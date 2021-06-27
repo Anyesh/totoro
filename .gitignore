@@ -31,13 +31,14 @@ yarn-debug.log*
 yarn-error.log*
 
 *.lock
-
 .vscode
 .vscode/**
 *.log
-sqlite3
+*.bak
+*.dat
+*.dir
+*.rdb
 
-
-
-settings/dev_settings.py
 staticfiles
+
+*.sqlite3

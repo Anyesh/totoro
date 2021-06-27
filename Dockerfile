@@ -1,11 +1,10 @@
-FROM python:latest
+FROM python:3.9
 
 WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
 ADD . /app
-RUN python manage.py makemigrations && python manage.py migrate
+RUN mv wait-for /bin/wait-for
 
 EXPOSE 8000
-CMD gunicorn --bind :8000 totoro.wsgi:application

@@ -54,7 +54,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "updated",
             "hometown",
             "work",
-            "cover_image",
         ]
         # extra_kwargs = {
         #     "password": {"write_only": True},

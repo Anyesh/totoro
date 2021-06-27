@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     # Internal
     "accounts",
-    "posts",
+    "posts.apps.PostsConfig",
     "friends",
     "notifications",
     # External
@@ -125,9 +125,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
     "https://storage.googleapis.com",
+    "http://api.anyesh.me",
+    "https://api.anyesh.me",
 ]
 
-CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+CORS_ORIGIN_WHITELIST = CORS_ORIGIN_REGEX_WHITELIST = CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -143,6 +145,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://totoro-frontend.vercel.app",
     "https://totoro-cezq5fxh3a-uc.a.run.app",
     "https://storage.googleapis.com",
+    "http://api.anyesh.me",
+    "https://api.anyesh.me",
 ]
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_CREDENTIALS = True
@@ -152,14 +156,14 @@ CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3"
-        # "ENGINE": "django.db.backends.postgresql",
-        # "NAME": config("DB_NAME"),
-        # "USER": config("DB_USERNAME"),
-        # "PASSWORD": config("DB_PASSWORD"),
-        # "HOST": config("DB_HOST"),
-        # "PORT": config("DB_PORT"),
+        # "ENGINE": "django.db.backends.sqlite3",
+        # "NAME": BASE_DIR / "db.sqlite3"
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
@@ -290,3 +294,65 @@ REST_USE_JWT = True  # use JSON Web Tokens
 JWT_AUTH_COOKIE = "totoro-access-token"
 JWT_AUTH_REFRESH_COOKIE = "totoro-refresh-token"
 JWT_AUTH_SAMESITE = "Lax"
+
+# CELERY
+BROKER_URL = config("REDIS_URI")
+CELERY_RESULT_BACKEND = config("REDIS_URI")
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Kathmandu"
+
+
+# API CACHE
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config("REDIS_CACHE_URI"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+CACHE_TTL = 60 * 60 * 1  # 1 hour
+
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
+    "formatters": {
+        "verbose": {"format": "[contactor] %(levelname)s %(asctime)s %(message)s"},
+    },
+    "handlers": {
+        # Send all messages to console
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+        },
+        # Warning messages are sent to admin emails
+        "mail_admins": {
+            "level": "WARNING",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "totoro.log",
+        },
+    },
+    "loggers": {
+        # This is the "catch all" logger
+        "": {
+            "handlers": ["console", "mail_admins", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
