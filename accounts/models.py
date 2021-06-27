@@ -145,7 +145,11 @@ def create_or_update_user_profile(sociallogin, user, **kwargs):
     if sociallogin and sociallogin.account.provider == "discord":
         f_name = sociallogin.account.extra_data.get("given_name")
         l_name = sociallogin.account.extra_data.get("family_name")
-        picture_url = f"https://cdn.discordapp.com/avatars/{sociallogin.account.extra_data.get('id')}/{sociallogin.account.extra_data.get('avatar')}.png"
+        picture_url = (
+            "https://cdn.discordapp.com/avatars"
+            f"/{sociallogin.account.extra_data.get('id')}"
+            f"/{sociallogin.account.extra_data.get('avatar')}.png"
+        )
 
     ip = get_client_ip()
     Profile.objects.create(
