@@ -1,20 +1,13 @@
-import hashlib
 from uuid import uuid4
 
-from allauth.account.signals import user_signed_up
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
 from django.db import models
-from django.dispatch import receiver
-
-# from django.db.models.signals import post_save
-from totoro.utils import get_client_ip
 
 
-# Create your models here.
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password=None):
         """
@@ -49,6 +42,7 @@ class Gender(models.Model):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+
     user_id = models.CharField(
         max_length=120, default=uuid4, primary_key=True, editable=False
     )
@@ -109,53 +103,3 @@ class Profile(models.Model):
 
 #         Profile.objects.update_or_create(user=instance)
 #     instance.profile.save()
-
-
-@receiver(user_signed_up)
-def create_or_update_user_profile(sociallogin, user, **kwargs):
-    preferred_avatar_size_pixels = 256
-
-    picture_url = "http://www.gravatar.com/avatar/{0}?s={1}".format(
-        hashlib.md5(user.email.encode("UTF-8")).hexdigest(),
-        preferred_avatar_size_pixels,
-    )
-    f_name = None
-    l_name = None
-    work = None
-    tagline = None
-    hometown = None
-
-    if sociallogin and sociallogin.account.provider == "google":
-        f_name = sociallogin.account.extra_data.get("given_name")
-        l_name = sociallogin.account.extra_data.get("family_name")
-
-        # verified = sociallogin.account.extra_data['verified_email']
-        picture_url = sociallogin.account.extra_data.get("picture")
-
-    if sociallogin and sociallogin.account.provider == "github":
-        name = sociallogin.account.extra_data.get("name")
-        if name:
-            f_name, l_name = name.split(" ")
-        tagline = sociallogin.account.extra_data.get("bio")
-        work = sociallogin.account.extra_data.get("company")
-        hometown = sociallogin.account.extra_data.get("location")
-
-        picture_url = sociallogin.account.extra_data.get("avatar_url")
-
-    if sociallogin and sociallogin.account.provider == "discord":
-        f_name = sociallogin.account.extra_data.get("given_name")
-        l_name = sociallogin.account.extra_data.get("family_name")
-        picture_url = f"https://cdn.discordapp.com/avatars/{sociallogin.account.extra_data.get('id')}/{sociallogin.account.extra_data.get('avatar')}.png"
-
-    ip = get_client_ip()
-    Profile.objects.create(
-        user=user,
-        current_ip=ip,
-        avatar=picture_url,
-        first_name=f_name,
-        last_name=l_name,
-        work=work,
-        hometown=hometown,
-        tagline=tagline,
-    )
-    user.profile.save()

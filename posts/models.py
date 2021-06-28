@@ -33,7 +33,11 @@ def upload_path(instance, filename):
 
 
 class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(
+        User,
+        on_delete=models.SET(User.objects.get(username="deleted_user").user_id),
+        null=True,
+    )
     origin = models.JSONField(null=True, blank=True, default=dict)
     title = models.CharField(max_length=120)
     width = models.IntegerField(default=0)
@@ -61,7 +65,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Post " + str(self.pk) + ", by " + str(self.author.username)
+        return "Post " + str(self.pk)
 
     def save(self, *args, **kwargs):
         # if self.image:

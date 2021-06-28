@@ -13,6 +13,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.api.serializers import ProfileSerializer, UserSerializer
@@ -23,11 +24,24 @@ from totoro.utils import get_response
 
 
 class LogoutView(APIView):
-    def post(self, request):
+    def logout(self, request):
         response = Response(
             data=get_response(message="User logged out", status=True, result="Success"),
             status=status.HTTP_200_OK,
         )
+
+        try:
+            refresh_token = request.data["refresh_token"]
+            print(refresh_token)
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except (TokenError, KeyError) as e:
+            return Response(
+                data=get_response(
+                    message=f"Invalid token! {e}", status=False, result="Error"
+                ),
+                status=status.HTTP_403_FORBIDDEN,
+            )
         try:
             request.user.auth_token.delete()
         except Exception:
@@ -35,10 +49,10 @@ class LogoutView(APIView):
         django_logout(request)
         response.delete_cookie(settings.JWT_AUTH_COOKIE)
         response.delete_cookie(settings.JWT_AUTH_REFRESH_COOKIE)
-        Refresh_token = request.COOKIES.get(settings.JWT_AUTH_REFRESH_COOKIE)
-        token = RefreshToken(Refresh_token)
-        token.blacklist()
         return response
+
+    def post(self, request):
+        return self.logout(request)
 
 
 @api_view(["PUT"])
