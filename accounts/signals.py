@@ -95,16 +95,15 @@ def delete_user_and_replace_with_substitute(user_to_delete: User):
     Replace all relations to user with fake replacement user
     :param user_to_delete: the user to delete
     """
-    replacement_user: User = User.objects.get(
+    replacement_user, _ = User.objects.get_or_create(
         username="deleted_user"
     )  # define your replacement user
     for field in get_all_relations(user_to_delete):
         # field: ManyToOneRel
-        target_model: Model = field.related_model
+        target_model = field.related_model
         target_field: str = field.remote_field.name
-        print(target_field)
         updated: int = target_model.objects.filter(
             **{target_field: user_to_delete}
-        ).update(**{target_field: replacement_user})
+        ).update(**{target_field: replacement_user.user_id})
         print_updated(target_model._meta.verbose_name, updated)
     # user_to_delete.delete()
