@@ -65,7 +65,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Post " + str(self.pk)
+        return "Post " + str(self.pk) + " __by " + str(self.author.username)
 
     def save(self, *args, **kwargs):
         # if self.image:
@@ -75,12 +75,18 @@ class Post(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET(User.objects.get(username="deleted_user").user_id),
+        null=True,
+    )
     comment_text = models.TextField(blank=False)
-    comment_likes = models.JSONField(default=dict)
-    comment_parent = models.CharField(max_length=16)
-    created = models.FloatField()
-    updated = models.FloatField()
+    comment_likes = models.JSONField(default=dict, blank=True, null=True)
+    comment_parent = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Comment #" + str(self.pk) + " __by " + str(self.user.user_id)
+        return "Comment #" + str(self.pk) + " __by " + str(self.user.username)
