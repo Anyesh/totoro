@@ -35,7 +35,7 @@ def upload_path(instance, filename):
 class Post(models.Model):
     author = models.ForeignKey(
         User,
-        on_delete=models.SET(User.objects.get(username="deleted_user").user_id),
+        on_delete=models.DO_NOTHING,
         null=True,
     )
     origin = models.JSONField(null=True, blank=True, default=dict)
@@ -77,13 +77,13 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     user = models.ForeignKey(
         User,
-        on_delete=models.SET(User.objects.get(username="deleted_user").user_id),
+        on_delete=models.DO_NOTHING,
         null=True,
     )
     comment_text = models.TextField(blank=False)
     comment_likes = models.JSONField(default=dict, blank=True, null=True)
     comment_parent = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL
+        "self", null=True, blank=True, on_delete=models.DO_NOTHING
     )
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)

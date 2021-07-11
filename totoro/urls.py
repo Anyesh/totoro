@@ -23,6 +23,8 @@ from django.urls import include, path
 # from django.urls.conf import re_path
 from django.urls.resolvers import URLResolver
 
+from .views import index
+
 api_urls: List[URLResolver] = [
     path("social/", include("accounts.urls")),
     # path("auth/", include("dj_rest_auth.urls")),
@@ -37,13 +39,14 @@ admin_url: List[URLResolver] = [
 ]
 
 urlpatterns: List[URLResolver] = [
+    path("", index),
     path("api/", include(api_urls)),
     # re_path(r"^accounts/", include("allauth.urls"), name="socialaccount_signup"),
     *admin_url,
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),  # type: ignore
 ]
 
-# if settings.DEBUG:
-#     urlpatterns += [
-#         path("dev/auth/", include("dj_rest_auth.urls")),
-#     ]
+if settings.DEBUG:
+    urlpatterns += [
+        path("dev/auth/", include("dj_rest_auth.urls")),
+    ]
