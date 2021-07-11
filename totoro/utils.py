@@ -1,5 +1,4 @@
 import requests
-from requests.models import HTTPError
 
 
 def get_response(message="", result={}, status=False, status_code=200):
@@ -14,6 +13,6 @@ def get_response(message="", result={}, status=False, status_code=200):
 def get_client_ip():
 
     try:
-        return requests.get("http://ip.jsontest.com/").json().get("ip")
-    except HTTPError:
-        return None
+        return requests.get("http://ipecho.net/plain").text
+    except Exception:
+        return ""
