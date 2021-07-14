@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     # Internal
-    "accounts",
+    "accounts.apps.AccountConfig",
     "posts.apps.PostsConfig",
     "friends",
     "notifications",
@@ -238,15 +238,19 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.UserRateThrottle",
-        # 'rest_framework.throttling.AnonRateThrottle',
+        "rest_framework.throttling.AnonRateThrottle",
     ),
     "EXCEPTION_HANDLER": "totoro.middleware.exceptions.handle_exception",
     "DEFAULT_THROTTLE_RATES": {
         "loginAttempts": "6/hr",
         "user": "1000/min",
+        "anon": "1000/min",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 20,
+    "FORM_METHOD_OVERRIDE": None,
+    "FORM_CONTENT_OVERRIDE": None,
+    "FORM_CONTENTTYPE_OVERRIDE": None,
 }
 
 REST_AUTH_SERIALIZERS = {
@@ -258,7 +262,7 @@ REST_AUTH_SERIALIZERS = {
 # JWT Settings
 SIMPLE_JWT = {
     "ALGORITHM": "HS256",
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
