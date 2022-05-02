@@ -14,7 +14,7 @@ def rename(filename, suffix=None):
 
     ext = filename.split(".")[-1]
     fn = filename[: -(len(ext) + 1)]
-    return fn + "-" + suffix + "." + ext
+    return f"{fn}-{suffix}.{ext}"
 
 
 def fix_spcl_char(chars):
@@ -65,7 +65,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Post " + str(self.pk) + " __by " + str(self.author.username)
+        return f"Post {str(self.pk)} __by {str(self.author.username)}"
 
     def save(self, *args, **kwargs):
         # if self.image:
@@ -89,4 +89,4 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Comment #" + str(self.pk) + " __by " + str(self.user.username)
+        return f"Comment #{str(self.pk)} __by {str(self.user.username)}"

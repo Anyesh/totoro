@@ -28,8 +28,23 @@ class PostsPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
     def get_paginated_response(self, data):
-        if not data:
-            return JsonResponse(
+        return (
+            JsonResponse(
+                data=get_response(
+                    message="Posts retrieved succesfully!",
+                    status_code=200,
+                    status=True,
+                    result={
+                        "next": self.get_next_link(),
+                        "previous": self.get_previous_link(),
+                        "count": self.page.paginator.count,
+                        "data": data,
+                    },
+                ),
+                status=status.HTTP_200_OK,
+            )
+            if data
+            else JsonResponse(
                 data=get_response(
                     message="No post(s) found!",
                     status_code=200,
@@ -38,20 +53,6 @@ class PostsPagination(PageNumberPagination):
                 ),
                 status=status.HTTP_200_OK,
             )
-
-        return JsonResponse(
-            data=get_response(
-                message="Posts retrieved succesfully!",
-                status_code=200,
-                status=True,
-                result={
-                    "next": self.get_next_link(),
-                    "previous": self.get_previous_link(),
-                    "count": self.page.paginator.count,
-                    "data": data,
-                },
-            ),
-            status=status.HTTP_200_OK,
         )
 
 
@@ -123,8 +124,7 @@ class Posts(APIView):
         user_id = request.user.user_id
         friends = []
 
-        data = Friend.objects.filter(Q(user_a=user_id) | Q(user_b=user_id))
-        if data:
+        if data := Friend.objects.filter(Q(user_a=user_id) | Q(user_b=user_id)):
             friends = [
                 entry.user_a if entry.user_a is not user_id else entry.user_b
                 for entry in data

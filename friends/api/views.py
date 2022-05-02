@@ -54,9 +54,8 @@ def getFriendRequests(request):
     if type(user_id) is Response:
         return user_id
 
-    data = FriendRequest.objects.filter(to_user=user_id)
-    friendrequests = []
-    if data:
+    if data := FriendRequest.objects.filter(to_user=user_id):
+        friendrequests = []
         for fr in data:
             # Check if user exist or if accounts id deleted
             try:
@@ -86,73 +85,74 @@ def getFriendRequests(request):
 @api_view(["POST"])
 @csrf_exempt
 def sendFriendRequest(request):
-    if request.method == "POST":
-        # REQUIRED: 'to_user' field in request
-        user_id = request.user
-        # If user_id type is Response that means we have errored
-        if type(user_id) is Response:
-            return user_id
+    if request.method != "POST":
+        return
+    # REQUIRED: 'to_user' field in request
+    user_id = request.user
+    # If user_id type is Response that means we have errored
+    if type(user_id) is Response:
+        return user_id
 
-        req_dict = request.data
+    req_dict = request.data
 
-        # Can't send oneself the friend request
-        if req_dict["to_user"] == user_id:
-            return Response(
-                error_response("Cannot send friend request to yourself."),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    # Can't send oneself the friend request
+    if req_dict["to_user"] == user_id:
+        return Response(
+            error_response("Cannot send friend request to yourself."),
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        # Check if user we are sending request to exist
-        if not User.objects.filter(pk=req_dict["to_user"]).exists():
-            return Response(
-                error_response("User does not exist."),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    # Check if user we are sending request to exist
+    if not User.objects.filter(pk=req_dict["to_user"]).exists():
+        return Response(
+            error_response("User does not exist."),
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        # Check if a friend request from a same use to same user has already been made
+    # Check if a friend request from a same use to same user has already been made
+    try:
+        FriendRequest.objects.get(
+            Q(from_user=user_id) & Q(to_user=req_dict["to_user"])
+        )
+        return Response(
+            error_response("Friend request is already sent."),
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except FriendRequest.DoesNotExist:
+        # Check if these people are already friends
         try:
-            FriendRequest.objects.get(
-                Q(from_user=user_id) & Q(to_user=req_dict["to_user"])
+            Friend.objects.get(
+                Q(user_a=user_id) & Q(user_b=req_dict["to_user"])
+                | Q(user_a=req_dict["to_user"]) & Q(user_b=user_id)
             )
             return Response(
-                error_response("Friend request is already sent."),
+                error_response("Already friends."),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except FriendRequest.DoesNotExist:
-            # Check if these people are already friends
-            try:
-                Friend.objects.get(
-                    Q(user_a=user_id) & Q(user_b=req_dict["to_user"])
-                    | Q(user_a=req_dict["to_user"]) & Q(user_b=user_id)
+        except Friend.DoesNotExist:
+            req_dict["from_user"] = user_id
+            req_dict["since"] = datetime.now().timestamp()
+            friendRequestSerializer = FriendRequestSerializer(data=req_dict)
+            if friendRequestSerializer.is_valid():
+                friendRequestSerializer.save()
+                # make a notification to send
+                notification = Notification(
+                    noti=3,
+                    user_for=req_dict["to_user"],
+                    user_from=req_dict["from_user"],
+                    about=0,
+                    created=datetime.now().timestamp(),
                 )
+                notification.save()
                 return Response(
-                    error_response("Already friends."),
+                    data=friendRequestSerializer.data,
+                    status=status.HTTP_201_CREATED,
+                )
+            else:
+                return Response(
+                    friendRequestSerializer.errors,
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            except Friend.DoesNotExist:
-                req_dict["from_user"] = user_id
-                req_dict["since"] = datetime.now().timestamp()
-                friendRequestSerializer = FriendRequestSerializer(data=req_dict)
-                if friendRequestSerializer.is_valid():
-                    friendRequestSerializer.save()
-                    # make a notification to send
-                    notification = Notification(
-                        noti=3,
-                        user_for=req_dict["to_user"],
-                        user_from=req_dict["from_user"],
-                        about=0,
-                        created=datetime.now().timestamp(),
-                    )
-                    notification.save()
-                    return Response(
-                        data=friendRequestSerializer.data,
-                        status=status.HTTP_201_CREATED,
-                    )
-                else:
-                    return Response(
-                        friendRequestSerializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
 
 
 # Accept friend request
@@ -254,9 +254,7 @@ def getFriendSuggestions(request):
     except FriendRequest.DoesNotExist:
         pass
 
-    # limiting the suggestions to 25 to prevent sending whole database
-    users = list(User.objects.filter(~Q(id__in=friends_ids))[:25])
-    if len(users) > 0:
+    if users := list(User.objects.filter(~Q(id__in=friends_ids))[:25]):
         # getting 10 random ids from people we are not friends with
         # and then serializing them and returning them
         random_users_ids = [a.id for a in random.sample(users, min(len(users), 10))]

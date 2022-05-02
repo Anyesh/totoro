@@ -70,8 +70,7 @@ def create_user_profile(user: User, sociallogin: Optional[SocialLogin] = None):
     def handle_github(social_account):
         f_name = None
         l_name = None
-        name = social_account.extra_data.get("name")
-        if name:
+        if name := social_account.extra_data.get("name"):
             f_name, l_name = name.split(" ")
         tagline = social_account.extra_data.get("bio")
         work = social_account.extra_data.get("company")

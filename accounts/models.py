@@ -94,4 +94,4 @@ class Profile(models.Model):
     ip_list = models.JSONField(default=list, blank=True, null=True)
 
     def __str__(self):
-        return "user: " + self.user.username
+        return f"user: {self.user.username}"

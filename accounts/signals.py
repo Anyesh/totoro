@@ -38,12 +38,12 @@ def get_all_relations(model: Model) -> List[ForeignObjectRel]:
     """
     Return all Many to One Relation to point to the given model
     """
-    result: List[ForeignObjectRel] = []
-    for field in model._meta.get_fields(include_hidden=True):
-
-        if isinstance(field, ManyToOneRel) and not isinstance(field, OneToOneRel):
-            result.append(field)
-    return result
+    return [
+        field
+        for field in model._meta.get_fields(include_hidden=True)
+        if isinstance(field, ManyToOneRel)
+        and not isinstance(field, OneToOneRel)
+    ]
 
 
 def print_updated(name, number):

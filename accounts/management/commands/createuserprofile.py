@@ -11,8 +11,7 @@ class Command(BaseCommand):
         created_users = []
         users = User.objects.all()
         for user in users:
-            status = create_user_profile(user)
-            if status:
+            if status := create_user_profile(user):
                 self.stdout.write(
                     self.style.SUCCESS('Created profile for "%s"' % user.username)
                 )

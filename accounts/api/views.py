@@ -91,8 +91,7 @@ def search_users(request, query):
         | Q(first_name__icontains=query.split()[-1])
         | Q(last_name__icontains=query.split()[0])
     )
-    results = UserSerializer(query, many=True)
-    if results:
+    if results := UserSerializer(query, many=True):
         return Response(data=results.data, status=status.HTTP_200_OK)
     else:
         return Response(

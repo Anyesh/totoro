@@ -23,7 +23,7 @@ def generate_jwt_token(user_id: str) -> str:
         algorithm=algorithm,
     )
 
-    return str(token.decode("utf-8"))
+    return token.decode("utf-8")
 
 
 def check_old_token(date: datetime.datetime) -> bool:

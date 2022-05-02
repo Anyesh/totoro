@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -215,8 +216,8 @@ GS_PROJECT_ID = "PROJECT ID FOUND IN GOOGLE CLOUD"
 GS_STATIC_BUCKET_NAME = "anyesh-data-bucket"
 GS_MEDIA_BUCKET_NAME = "anyesh-media-bucket"
 
-STATIC_URL = "https://storage.googleapis.com/{}/".format(GS_STATIC_BUCKET_NAME)
-MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_MEDIA_BUCKET_NAME)
+STATIC_URL = f"https://storage.googleapis.com/{GS_STATIC_BUCKET_NAME}/"
+MEDIA_URL = f"https://storage.googleapis.com/{GS_MEDIA_BUCKET_NAME}/"
 MEDIA_ROOT = "media/"
 
 
@@ -224,7 +225,7 @@ UPLOAD_ROOT = "media/uploads/"
 
 DOWNLOAD_ROOT = BASE_DIR / "static/media/downloads"
 
-DOWNLOAD_URL = STATIC_URL + "media/downloads"
+DOWNLOAD_URL = f"{STATIC_URL}media/downloads"
 
 
 CALLBACK_URL = "https://totoro-frontend.vercel.app"

@@ -25,4 +25,4 @@ class FriendRequest(models.Model):
     since = models.FloatField()
 
     def __str__(self):
-        return "from user: " + str(self.from_user) + " to user: " + str(self.to_user)
+        return f"from user: {str(self.from_user)} to user: {str(self.to_user)}"
